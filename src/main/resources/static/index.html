@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>指标管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-edit {
+            background: #28a745;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-statistics {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-detail {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .array-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .array-input input {
+            flex: 1;
+        }
+
+        .add-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .item-list {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+            min-height: 50px;
+        }
+
+        .item-tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 12px;
+        }
+
+        .item-tag .remove {
+            margin-left: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+        }
+
+        .btn-generate {
+            background: #ff9800;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 指标管理系统</h1>
+            <p>业务分析指标配置与管理平台</p>
+        </div>
+
+        <div class="content">
+            <div id="message" class="message"></div>
+
+            <!-- 表单区域 -->
+            <div class="form-section">
+                <h2 id="formTitle">新增指标</h2>
+                
+                <!-- SQL解析区域 -->
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #1976d2;"> SQL解析（可选）</h3>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <textarea id="sqlInput" rows="6" placeholder="在此输入SQL语句，例如：&#10;SELECT date, city, COUNT(*) &#10;FROM users &#10;LEFT JOIN orders ON users.id = orders.user_id &#10;WHERE status = 'active' &#10;GROUP BY date, city" style="font-family: 'Courier New', monospace; font-size: 13px;"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="parseSql()" style="background: #1976d2;">解析SQL</button>
+                    <span style="margin-left: 10px; color: #666; font-size: 13px;">解析后会自动填充下方表单</span>
+                </div>
+                
+                <form id="metricForm">
+                    <input type="hidden" id="metricId">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="metricName">指标名称 *</label>
+                            <input type="text" id="metricName" required placeholder="请输入指标名称">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="metricType">指标类型 *</label>
+                            <select id="metricType" required>
+                                <option value="">请选择类型</option>
+                                <option value="STATISTICS">统计</option>
+                                <option value="DETAIL">明细</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mainTable">主表 *</label>
+                            <input type="text" id="mainTable" required placeholder="请输入主表名">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">指标注释</label>
+                            <textarea id="description" rows="1" placeholder="请输入指标描述"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>关联表</label>
+                        <div class="array-input">
+                            <input type="text" id="joinTableInput" placeholder="表名">
+                            <input type="text" id="joinTableAlias" placeholder="别名" style="flex: 0.5;">
+                            <button type="button" class="add-btn" onclick="addJoinTable()">添加</button>
+                        </div>
+                        <div id="joinTableList" class="item-list"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>关联字段</label>
+                        <div class="array-input">
+                            <input type="text" id="joinFieldMain" placeholder="主表字段">
+                            <input type="text" id="joinFieldJoin" placeholder="关联表字段" style="flex: 0.8;">
+                            <button type="button" class="add-btn" onclick="addJoinField()">添加</button>
+                        </div>
+                        <div id="joinFieldList" class="item-list"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>维度字段（逗号分隔）</label>
+                        <input type="text" id="dimensionFields" placeholder="例如：date,city,category">
+                    </div>
+
+                    <div class="form-group">
+                        <label>过滤字段</label>
+                        <div class="array-input">
+                            <input type="text" id="filterField" placeholder="字段名" style="flex: 0.6;">
+                            <select id="filterOperator" style="flex: 0.4;">
+                                <option value="=">=</option>
+                                <option value=">">&gt;</option>
+                                <option value="<">&lt;</option>
+                                <option value=">=">&gt;=</option>
+                                <option value="<=">&lt;=</option>
+                                <option value!=">!=</option>
+                                <option value="LIKE">LIKE</option>
+                            </select>
+                            <input type="text" id="filterValue" placeholder="值" style="flex: 0.6;">
+                            <button type="button" class="add-btn" onclick="addFilterField()">添加</button>
+                        </div>
+                        <div id="filterFieldList" class="item-list"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">保存</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">重置</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 搜索和列表区域 -->
+            <div class="form-section">
+                <h2>指标列表</h2>
+                <div class="search-bar">
+                    <input type="text" id="searchKeyword" placeholder="搜索指标名称或描述...">
+                    <button class="btn btn-primary" onclick="searchMetrics()">搜索</button>
+                    <button class="btn btn-secondary" onclick="loadMetrics()">刷新</button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>指标名称</th>
+                                <th>类型</th>
+                                <th>主表</th>
+                                <th>维度字段</th>
+                                <th>描述</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="metricTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 30px;">加载中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SQL生成结果弹窗 -->
+            <div id="sqlModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeSqlModal()">&times;</span>
+                    <h2 style="margin-bottom: 20px; color: #333;">📋 生成的SQL语句</h2>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                        <pre id="sqlResult" style="font-family: 'Courier New', monospace; font-size: 14px; white-space: pre-wrap; word-wrap: break-word; color: #333; line-height: 1.6;"></pre>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="copySql()">📋 复制SQL</button>
+                        <button class="btn btn-secondary" onclick="closeSqlModal()">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/metrics';
+        let joinTables = [];
+        let joinFields = [];
+        let filterFields = [];
+
+        // 显示消息
+        function showMessage(text, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = text;
+            msgDiv.className = `message ${type}`;
+            setTimeout(() => {
+                msgDiv.className = 'message';
+            }, 3000);
+        }
+
+        // 添加关联表
+        function addJoinTable() {
+            const table = document.getElementById('joinTableInput').value.trim();
+            const alias = document.getElementById('joinTableAlias').value.trim();
+            
+            if (!table) {
+                showMessage('请输入表名', 'error');
+                return;
+            }
+
+            joinTables.push({ table, alias });
+            renderJoinTables();
+            
+            document.getElementById('joinTableInput').value = '';
+            document.getElementById('joinTableAlias').value = '';
+        }
+
+        // 渲染关联表列表
+        function renderJoinTables() {
+            const container = document.getElementById('joinTableList');
+            container.innerHTML = joinTables.map((item, index) => 
+                `<span class="item-tag">${item.table}${item.alias ? '(' + item.alias + ')' : ''} 
+                 <span class="remove" onclick="removeJoinTable(${index})">×</span></span>`
+            ).join('');
+        }
+
+        // 删除关联表
+        function removeJoinTable(index) {
+            joinTables.splice(index, 1);
+            renderJoinTables();
+        }
+
+        // 添加关联字段
+        function addJoinField() {
+            const mainField = document.getElementById('joinFieldMain').value.trim();
+            const joinField = document.getElementById('joinFieldJoin').value.trim();
+            
+            if (!mainField || !joinField) {
+                showMessage('请输入主表字段和关联表字段', 'error');
+                return;
+            }
+
+            joinFields.push({ mainField, joinField });
+            renderJoinFields();
+            
+            document.getElementById('joinFieldMain').value = '';
+            document.getElementById('joinFieldJoin').value = '';
+        }
+
+        // 渲染关联字段列表
+        function renderJoinFields() {
+            const container = document.getElementById('joinFieldList');
+            container.innerHTML = joinFields.map((item, index) => 
+                `<span class="item-tag">${item.mainField} = ${item.joinField} 
+                 <span class="remove" onclick="removeJoinField(${index})">×</span></span>`
+            ).join('');
+        }
+
+        // 删除关联字段
+        function removeJoinField(index) {
+            joinFields.splice(index, 1);
+            renderJoinFields();
+        }
+
+        // 添加过滤字段
+        function addFilterField() {
+            const field = document.getElementById('filterField').value.trim();
+            const operator = document.getElementById('filterOperator').value;
+            const value = document.getElementById('filterValue').value.trim();
+            
+            if (!field || !value) {
+                showMessage('请输入字段名和值', 'error');
+                return;
+            }
+
+            filterFields.push({ field, operator, value });
+            renderFilterFields();
+            
+            document.getElementById('filterField').value = '';
+            document.getElementById('filterValue').value = '';
+        }
+
+        // 渲染过滤字段列表
+        function renderFilterFields() {
+            const container = document.getElementById('filterFieldList');
+            container.innerHTML = filterFields.map((item, index) => 
+                `<span class="item-tag">${item.field} ${item.operator} ${item.value} 
+                 <span class="remove" onclick="removeFilterField(${index})">×</span></span>`
+            ).join('');
+        }
+
+        // 删除过滤字段
+        function removeFilterField(index) {
+            filterFields.splice(index, 1);
+            renderFilterFields();
+        }
+
+        // 加载所有指标
+        async function loadMetrics() {
+            try {
+                const response = await fetch(API_BASE);
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderMetricTable(result.data);
+                } else {
+                    showMessage('加载失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 搜索指标
+        async function searchMetrics() {
+            const keyword = document.getElementById('searchKeyword').value.trim();
+            
+            if (!keyword) {
+                loadMetrics();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/search?keyword=${encodeURIComponent(keyword)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderMetricTable(result.data);
+                } else {
+                    showMessage('搜索失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 渲染指标表格
+        function renderMetricTable(metrics) {
+            const tbody = document.getElementById('metricTableBody');
+            
+            if (!metrics || metrics.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 30px;">暂无数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = metrics.map(metric => `
+                <tr>
+                    <td>${metric.id}</td>
+                    <td>${metric.metricName}</td>
+                    <td>
+                        <span class="badge badge-${metric.metricType.toLowerCase()}">
+                            ${metric.metricType === 'STATISTICS' ? '统计' : '明细'}
+                        </span>
+                    </td>
+                    <td>${metric.mainTable}</td>
+                    <td>${metric.dimensionFields || '-'}</td>
+                    <td>${metric.description || '-'}</td>
+                    <td>${new Date(metric.createdTime).toLocaleString('zh-CN')}</td>
+                    <td>
+                        <button class="btn btn-generate" onclick="generateSql(${metric.id})">生成SQL</button>
+                        <button class="btn btn-edit" onclick="editMetric(${metric.id})">编辑</button>
+                        <button class="btn btn-danger" onclick="deleteMetric(${metric.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 编辑指标
+        async function editMetric(id) {
+            console.log('编辑指标，ID:', id);
+            
+            try {
+                const response = await fetch(`${API_BASE}/${id}`);
+                const result = await response.json();
+                console.log('编辑加载结果:', result);
+                
+                if (result.success) {
+                    const metric = result.data;
+                    document.getElementById('metricId').value = metric.id;
+                    document.getElementById('metricName').value = metric.metricName;
+                    document.getElementById('metricType').value = metric.metricType;
+                    document.getElementById('mainTable').value = metric.mainTable;
+                    document.getElementById('description').value = metric.description || '';
+                    document.getElementById('dimensionFields').value = metric.dimensionFields || '';
+                    
+                    // 解析JSON字段，增加错误处理
+                    try {
+                        joinTables = (metric.joinTables && metric.joinTables !== '' && metric.joinTables !== 'null') 
+                            ? JSON.parse(metric.joinTables) 
+                            : [];
+                    } catch (e) {
+                        console.error('解析joinTables失败:', e);
+                        joinTables = [];
+                    }
+                    
+                    try {
+                        joinFields = (metric.joinFields && metric.joinFields !== '' && metric.joinFields !== 'null') 
+                            ? JSON.parse(metric.joinFields) 
+                            : [];
+                    } catch (e) {
+                        console.error('解析joinFields失败:', e);
+                        joinFields = [];
+                    }
+                    
+                    try {
+                        filterFields = (metric.filterFields && metric.filterFields !== '' && metric.filterFields !== 'null') 
+                            ? JSON.parse(metric.filterFields) 
+                            : [];
+                    } catch (e) {
+                        console.error('解析filterFields失败:', e);
+                        filterFields = [];
+                    }
+                    
+                    renderJoinTables();
+                    renderJoinFields();
+                    renderFilterFields();
+                    
+                    document.getElementById('formTitle').textContent = '编辑指标';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    showMessage('加载失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('编辑错误:', error);
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 删除指标
+        async function deleteMetric(id) {
+            if (!confirm('确定要删除这个指标吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('删除成功', 'success');
+                    loadMetrics();
+                } else {
+                    showMessage('删除失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 重置表单
+        function resetForm() {
+            document.getElementById('metricForm').reset();
+            document.getElementById('metricId').value = '';
+            document.getElementById('formTitle').textContent = '新增指标';
+            joinTables = [];
+            joinFields = [];
+            filterFields = [];
+            renderJoinTables();
+            renderJoinFields();
+            renderFilterFields();
+        }
+
+        // 提交表单
+        document.getElementById('metricForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('metricId').value;
+            const metricData = {
+                metricName: document.getElementById('metricName').value,
+                metricType: document.getElementById('metricType').value,
+                mainTable: document.getElementById('mainTable').value,
+                description: document.getElementById('description').value,
+                dimensionFields: document.getElementById('dimensionFields').value,
+                joinTables: JSON.stringify(joinTables),
+                joinFields: JSON.stringify(joinFields),
+                filterFields: JSON.stringify(filterFields)
+            };
+
+            try {
+                const url = id ? `${API_BASE}/${id}` : API_BASE;
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(metricData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(id ? '更新成功' : '创建成功', 'success');
+                    resetForm();
+                    loadMetrics();
+                } else {
+                    showMessage('操作失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        });
+
+        // 页面加载时获取数据
+        window.addEventListener('load', loadMetrics);
+
+        // 解析SQL
+        async function parseSql() {
+            const sql = document.getElementById('sqlInput').value.trim();
+            
+            if (!sql) {
+                showMessage('请输入SQL语句', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/parse-sql`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ sql: sql })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('SQL解析成功', 'success');
+                    fillFormFromParsedSql(result.data);
+                } else {
+                    showMessage('解析失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 从解析结果填充表单
+        function fillFormFromParsedSql(data) {
+            // 填充主表
+            if (data.mainTable) {
+                document.getElementById('mainTable').value = data.mainTable;
+            }
+            
+            // 填充关联表
+            if (data.joinTables && data.joinTables.length > 0) {
+                joinTables = data.joinTables;
+                renderJoinTables();
+            }
+            
+            // 填充关联字段
+            if (data.joinFields && data.joinFields.length > 0) {
+                joinFields = data.joinFields;
+                renderJoinFields();
+            }
+            
+            // 填充过滤字段
+            if (data.filterFields && data.filterFields.length > 0) {
+                filterFields = data.filterFields;
+                renderFilterFields();
+            }
+            
+            // 填充维度字段（GROUP BY）
+            if (data.dimensionFields && data.dimensionFields.length > 0) {
+                document.getElementById('dimensionFields').value = data.dimensionFields.join(',');
+            }
+        }
+
+        // 生成SQL
+        async function generateSql(id) {
+            console.log('生成SQL，指标ID:', id);
+            
+            try {
+                const response = await fetch(`${API_BASE}/${id}/generate-sql`);
+                console.log('响应状态:', response.status);
+                
+                const result = await response.json();
+                console.log('响应结果:', result);
+                
+                if (result.success) {
+                    document.getElementById('sqlResult').textContent = result.data;
+                    document.getElementById('sqlModal').style.display = 'block';
+                } else {
+                    showMessage('生成失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('错误:', error);
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 关闭SQL弹窗
+        function closeSqlModal() {
+            document.getElementById('sqlModal').style.display = 'none';
+        }
+
+        // 复制SQL
+        function copySql() {
+            const sqlText = document.getElementById('sqlResult').textContent;
+            navigator.clipboard.writeText(sqlText).then(() => {
+                showMessage('SQL已复制到剪贴板', 'success');
+            }).catch(() => {
+                // 备用复制方法
+                const textArea = document.createElement('textarea');
+                textArea.value = sqlText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showMessage('SQL已复制到剪贴板', 'success');
+            });
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('sqlModal');
+            if (event.target === modal) {
+                closeSqlModal();
+            }
+        }
+    </script>
+</body>
+</html>

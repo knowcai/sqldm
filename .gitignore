@@ -1,0 +1,19 @@
+# IDEA
+.idea/
+*.iml
+target/
+
+# VS Code
+.vscode/
+
+# 日志、临时文件
+*.log
+*.tmp
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 配置（敏感信息）
+application-*.yml
+application-*.properties
