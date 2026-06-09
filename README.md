@@ -1,9 +1,20 @@
 # 指标管理系统
 
+## 版本信息
+**v0.01** - 添加主题管理和简单账号管理功能
+
 ## 项目简介
 这是一个基于 Spring Boot + PostgreSQL 的指标管理系统，允许业务分析人员在前端配置和管理数据分析指标。
 
 ## 功能特性
+### v0.01 新增功能
+- ✅ **主题管理**：指标归属于特定主题，支持主题分类管理
+- ✅ **权限控制**：三级权限体系（超级管理员、主题管理员、普通用户）
+- ✅ **用户管理**：支持用户增删改查和角色分配
+- ✅ **登录认证**：基于 Spring Security 的会话认证
+- ✅ **主题分配**：管理员可为主题分配成员和管理员
+
+### 核心功能
 - ✅ 支持统计型和明细型两种指标类型
 - ✅ 配置主表、关联表、关联字段
 - ✅ 支持维度字段和过滤字段配置
@@ -37,20 +48,46 @@ psql -U root -d vectordb -f src/main/resources/schema.sql
 
 ## 快速开始
 
-### 1. 编译项目
+### 1. 数据库准备
+在 PostgreSQL 中执行以下 SQL 脚本创建表：
+```bash
+psql -U root -d vectordb -f src/main/resources/schema_with_auth.sql
+```
+
+### 2. 编译项目
 ```bash
 mvn clean package
 ```
 
-### 2. 运行项目
+### 3. 运行项目
 ```bash
 mvn spring-boot:run
 ```
 
 或者直接运行 Main 类。
 
-### 3. 访问系统
+### 4. 初始化默认用户
+应用启动后，执行以下命令初始化默认用户：
+```bash
+curl -X POST http://localhost:8080/init/users
+```
+
+### 5. 访问系统
 打开浏览器访问：http://localhost:8080
+
+## 权限体系
+
+### 角色说明
+| 角色 | 用户名 | 密码 | 权限 |
+|------|--------|------|------|
+| 超级管理员 | root | root | 所有权限，可管理用户和主题 |
+| 主题管理员 | admin1/admin2 | admin1/admin2 | 可管理主题下的指标和成员 |
+| 普通用户 | user1/user2 | user1/user2 | 只有查询权限 |
+
+### 权限规则
+- **超级管理员**：可以创建/编辑/删除用户，创建/编辑/删除主题，分配主题管理员
+- **主题管理员**：可以创建/编辑/删除指标，分配主题成员
+- **普通用户**：只能查看指标，不能编辑
 
 ## 使用说明
 
@@ -101,7 +138,7 @@ mvn spring-boot:run
 ### 请求示例
 
 #### 创建指标
-```json
+``json
 POST http://localhost:8080/api/metrics
 Content-Type: application/json
 
@@ -180,19 +217,35 @@ sqldm/
 │   ├── main/
 │   │   ├── java/org/example/
 │   │   │   ├── Main.java                    # 启动类
+│   │   │   ├── config/
+│   │   │   │   └── SecurityConfig.java      # 安全配置
 │   │   │   ├── entity/
-│   │   │   │   └── MetricDefinition.java    # 指标实体
+│   │   │   │   ├── MetricDefinition.java    # 指标实体
+│   │   │   │   ├── SysUser.java             # 用户实体
+│   │   │   │   ├── Topic.java               # 主题实体
+│   │   │   │   └── UserTopic.java           # 用户主题关联实体
 │   │   │   ├── repository/
-│   │   │   │   └── MetricRepository.java    # 数据访问层
+│   │   │   │   ├── MetricRepository.java    # 指标数据访问层
+│   │   │   │   ├── SysUserRepository.java   # 用户数据访问层
+│   │   │   │   ├── TopicRepository.java     # 主题数据访问层
+│   │   │   │   └── UserTopicRepository.java # 用户主题关联数据访问层
 │   │   │   ├── service/
-│   │   │   │   └── MetricService.java       # 业务逻辑层
+│   │   │   │   ├── MetricService.java       # 指标业务逻辑层
+│   │   │   │   ├── UserService.java         # 用户业务逻辑层
+│   │   │   │   └── TopicService.java        # 主题业务逻辑层
 │   │   │   └── controller/
-│   │   │       └── MetricController.java    # 控制器层
+│   │   │       ├── MetricController.java    # 指标控制器
+│   │   │       ├── UserController.java      # 用户控制器
+│   │   │       ├── TopicController.java     # 主题控制器
+│   │   │       ├── AuthController.java      # 认证控制器
+│   │   │       └── InitController.java      # 初始化控制器
 │   │   └── resources/
 │   │       ├── application.yml              # 配置文件
-│   │       ├── schema.sql                   # 建表脚本
+│   │       ├── schema_with_auth.sql         # 建表脚本（含权限表）
 │   │       └── static/
-│   │           └── index.html               # 前端页面
+│   │           ├── index.html               # 指标管理页面
+│   │           ├── login.html               # 登录页面
+│   │           └── admin.html               # 系统管理页面
 │   └── test/java/
 └── pom.xml
 ```

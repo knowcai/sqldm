@@ -33,6 +33,47 @@
             padding: 30px;
             text-align: center;
         }
+        
+        .nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            margin-right: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-info span {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .btn-logout {
+            background: #dc3545;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
 
         .header h1 {
             font-size: 28px;
@@ -303,6 +344,20 @@
             <h1>📊 指标管理系统</h1>
             <p>业务分析指标配置与管理平台</p>
         </div>
+        
+        <div class="nav">
+            <div class="nav-links">
+                <a href="index.html" style="color: #764ba2; font-weight: bold;">📊 指标管理</a>
+                <a href="admin.html" id="adminLink" style="display: none;">🔧 系统管理</a>
+            </div>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span id="currentUser"></span>
+                <select id="topicSelect" style="padding: 5px 10px; border-radius: 5px; border: 1px solid #e0e0e0;">
+                    <option value="">所有主题</option>
+                </select>
+                <button class="btn-logout" onclick="logout()">退出</button>
+            </div>
+        </div>
 
         <div class="content">
             <div id="message" class="message"></div>
@@ -336,6 +391,15 @@
                                 <option value="">请选择类型</option>
                                 <option value="STATISTICS">统计</option>
                                 <option value="DETAIL">明细</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="topicId">所属主题</label>
+                            <select id="topicId">
+                                <option value="">请选择主题</option>
                             </select>
                         </div>
                     </div>
@@ -419,6 +483,7 @@
                                 <th>ID</th>
                                 <th>指标名称</th>
                                 <th>类型</th>
+                                <th>主题</th>
                                 <th>主表</th>
                                 <th>维度字段</th>
                                 <th>描述</th>
@@ -454,9 +519,13 @@
 
     <script>
         const API_BASE = 'http://localhost:8080/api/metrics';
+        const AUTH_API = 'http://localhost:8080/api/auth';
+        const TOPIC_API = 'http://localhost:8080/api/topics';
         let joinTables = [];
         let joinFields = [];
         let filterFields = [];
+        let currentUser = null;
+        let allTopics = [];
 
         // 显示消息
         function showMessage(text, type) {
@@ -568,7 +637,9 @@
         // 加载所有指标
         async function loadMetrics() {
             try {
-                const response = await fetch(API_BASE);
+                const response = await fetch(API_BASE, {
+                    credentials: 'include'
+                });
                 const result = await response.json();
                 
                 if (result.success) {
@@ -591,7 +662,9 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/search?keyword=${encodeURIComponent(keyword)}`);
+                const response = await fetch(`${API_BASE}/search?keyword=${encodeURIComponent(keyword)}`, {
+                    credentials: 'include'
+                });
                 const result = await response.json();
                 
                 if (result.success) {
@@ -622,14 +695,15 @@
                             ${metric.metricType === 'STATISTICS' ? '统计' : '明细'}
                         </span>
                     </td>
+                    <td>${metric.topicName || '-'}</td>
                     <td>${metric.mainTable}</td>
                     <td>${metric.dimensionFields || '-'}</td>
                     <td>${metric.description || '-'}</td>
                     <td>${new Date(metric.createdTime).toLocaleString('zh-CN')}</td>
                     <td>
                         <button class="btn btn-generate" onclick="generateSql(${metric.id})">生成SQL</button>
-                        <button class="btn btn-edit" onclick="editMetric(${metric.id})">编辑</button>
-                        <button class="btn btn-danger" onclick="deleteMetric(${metric.id})">删除</button>
+                        ${canEdit() ? `<button class="btn btn-edit" onclick="editMetric(${metric.id})">编辑</button>` : ''}
+                        ${canEdit() ? `<button class="btn btn-danger" onclick="deleteMetric(${metric.id})">删除</button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -640,7 +714,9 @@
             console.log('编辑指标，ID:', id);
             
             try {
-                const response = await fetch(`${API_BASE}/${id}`);
+                const response = await fetch(`${API_BASE}/${id}`, {
+                    credentials: 'include'
+                });
                 const result = await response.json();
                 console.log('编辑加载结果:', result);
                 
@@ -704,7 +780,8 @@
 
             try {
                 const response = await fetch(`${API_BASE}/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include'
                 });
                 const result = await response.json();
                 
@@ -737,12 +814,14 @@
             e.preventDefault();
             
             const id = document.getElementById('metricId').value;
+            const topicId = document.getElementById('topicId').value;
             const metricData = {
                 metricName: document.getElementById('metricName').value,
                 metricType: document.getElementById('metricType').value,
                 mainTable: document.getElementById('mainTable').value,
                 description: document.getElementById('description').value,
                 dimensionFields: document.getElementById('dimensionFields').value,
+                topicId: topicId ? parseInt(topicId) : null,
                 joinTables: JSON.stringify(joinTables),
                 joinFields: JSON.stringify(joinFields),
                 filterFields: JSON.stringify(filterFields)
@@ -757,6 +836,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify(metricData)
                 });
                 
@@ -775,7 +855,138 @@
         });
 
         // 页面加载时获取数据
-        window.addEventListener('load', loadMetrics);
+        window.addEventListener('load', async function() {
+            await checkLogin();
+            if (currentUser) {
+                await loadTopics();
+                loadMetrics();
+                updateUI();
+            }
+        });
+        
+        // 检查登录状态
+        async function checkLogin() {
+            try {
+                const response = await fetch(`${AUTH_API}/current`, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentUser = result.data;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                } else {
+                    // 未登录,跳转到登录页面
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // 加载主题列表
+        async function loadTopics() {
+            try {
+                const response = await fetch(TOPIC_API, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    allTopics = result.data;
+                    
+                    // 填充表单中的主题选择器
+                    const topicSelect = document.getElementById('topicId');
+                    topicSelect.innerHTML = '<option value="">请选择主题</option>' + 
+                        allTopics.map(topic => `<option value="${topic.id}">${topic.topicName}</option>`).join('');
+                    
+                    // 填充导航栏中的主题选择器
+                    const navTopicSelect = document.getElementById('topicSelect');
+                    navTopicSelect.innerHTML = '<option value="">所有主题</option>' + 
+                        allTopics.map(topic => `<option value="${topic.id}">${topic.topicName}</option>`).join('');
+                    
+                    // 监听主题筛选
+                    navTopicSelect.addEventListener('change', function() {
+                        const topicId = this.value;
+                        if (topicId) {
+                            loadMetricsByTopic(topicId);
+                        } else {
+                            loadMetrics();
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('加载主题失败:', error);
+            }
+        }
+        
+        // 根据主题加载指标
+        async function loadMetricsByTopic(topicId) {
+            try {
+                const response = await fetch(`${API_BASE}/topic/${topicId}`, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderMetricTable(result.data);
+                } else {
+                    showMessage('加载失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+        
+        // 更新UI
+        function updateUI() {
+            if (!currentUser) return;
+            
+            document.getElementById('userInfo').style.display = 'flex';
+            document.getElementById('currentUser').textContent = 
+                `${currentUser.realName || currentUser.username} (${getRoleText(currentUser.role)})`;
+            
+            // 显示管理员链接
+            if (currentUser.role === 'SUPER_ADMIN') {
+                document.getElementById('adminLink').style.display = 'inline';
+            }
+            
+            // 控制表单显示
+            if (!canEdit()) {
+                document.querySelector('.form-section').style.display = 'none';
+                showMessage('您当前只有查看权限，如需编辑请联系管理员', 'error');
+            }
+        }
+        
+        // 获取角色文本
+        function getRoleText(role) {
+            const roleMap = {
+                'SUPER_ADMIN': '超级管理员',
+                'TOPIC_ADMIN': '主题管理员',
+                'USER': '普通用户'
+            };
+            return roleMap[role] || role;
+        }
+        
+        // 检查是否有编辑权限
+        function canEdit() {
+            if (!currentUser) return false;
+            return currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'TOPIC_ADMIN';
+        }
+        
+        // 退出登录
+        async function logout() {
+            try {
+                await fetch(`${AUTH_API}/logout`, { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                localStorage.removeItem('currentUser');
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('退出失败:', error);
+            }
+        }
 
         // 解析SQL
         async function parseSql() {
@@ -792,6 +1003,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ sql: sql })
                 });
                 
@@ -844,7 +1056,9 @@
             console.log('生成SQL，指标ID:', id);
             
             try {
-                const response = await fetch(`${API_BASE}/${id}/generate-sql`);
+                const response = await fetch(`${API_BASE}/${id}/generate-sql`, {
+                    credentials: 'include'
+                });
                 console.log('响应状态:', response.status);
                 
                 const result = await response.json();

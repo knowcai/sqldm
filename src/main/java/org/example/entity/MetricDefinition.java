@@ -21,6 +21,12 @@ public class MetricDefinition {
 
     @Column(name = "metric_type", nullable = false, length = 50)
     private String metricType; // STATISTICS-统计, DETAIL-明细
+    
+    @Column(name = "topic_id")
+    private Long topicId;
+    
+    @Column(name = "topic_name", length = 200)
+    private String topicName;
 
     @Column(name = "main_table", nullable = false, length = 200)
     private String mainTable;

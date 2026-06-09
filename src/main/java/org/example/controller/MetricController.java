@@ -132,6 +132,19 @@ public class MetricController {
         response.put("total", metrics.size());
         return ResponseEntity.ok(response);
     }
+    
+    /**
+     * 根据主题获取指标
+     */
+    @GetMapping("/topic/{topicId}")
+    public ResponseEntity<Map<String, Object>> getMetricsByTopic(@PathVariable("topicId") Long topicId) {
+        Map<String, Object> response = new HashMap<>();
+        List<MetricDefinition> metrics = metricService.getMetricsByTopic(topicId);
+        response.put("success", true);
+        response.put("data", metrics);
+        response.put("total", metrics.size());
+        return ResponseEntity.ok(response);
+    }
 
     /**
      * 解析SQL语句

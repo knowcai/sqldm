@@ -4,7 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.example.entity.MetricDefinition;
+import org.example.entity.Topic;
+import org.example.entity.SysUser;
 import org.example.repository.MetricRepository;
+import org.example.repository.TopicRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +20,7 @@ import java.util.*;
 public class MetricService {
 
     private final MetricRepository metricRepository;
+    private final TopicRepository topicRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -27,8 +33,17 @@ public class MetricService {
             throw new RuntimeException("指标名称已存在: " + metric.getMetricName());
         }
         
-        metric.setCreatedBy("system");
-        metric.setUpdatedBy("system");
+        // 设置主题信息
+        if (metric.getTopicId() != null) {
+            Topic topic = topicRepository.findById(metric.getTopicId())
+                    .orElseThrow(() -> new RuntimeException("主题不存在: " + metric.getTopicId()));
+            metric.setTopicName(topic.getTopicName());
+        }
+        
+        // 获取当前用户
+        String currentUser = getCurrentUsername();
+        metric.setCreatedBy(currentUser);
+        metric.setUpdatedBy(currentUser);
         metric.setIsDeleted(false);
         
         return metricRepository.save(metric);
@@ -57,7 +72,7 @@ public class MetricService {
         existing.setDimensionFields(metric.getDimensionFields());
         existing.setFilterFields(metric.getFilterFields());
         existing.setDescription(metric.getDescription());
-        existing.setUpdatedBy("system");
+        existing.setUpdatedBy(getCurrentUsername());
 
         return metricRepository.save(existing);
     }
@@ -71,7 +86,7 @@ public class MetricService {
                 .orElseThrow(() -> new RuntimeException("指标不存在: " + id));
         
         metric.setIsDeleted(true);
-        metric.setUpdatedBy("system");
+        metric.setUpdatedBy(getCurrentUsername());
         metricRepository.save(metric);
     }
 
@@ -102,6 +117,24 @@ public class MetricService {
      */
     public List<MetricDefinition> searchMetrics(String keyword) {
         return metricRepository.searchMetrics(keyword);
+    }
+    
+    /**
+     * 根据主题获取指标
+     */
+    public List<MetricDefinition> getMetricsByTopic(Long topicId) {
+        return metricRepository.findByTopicIdAndIsDeletedFalseOrderByCreatedTimeDesc(topicId);
+    }
+    
+    /**
+     * 获取当前登录用户名
+     */
+    private String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            return authentication.getName();
+        }
+        return "system";
     }
 
     /**

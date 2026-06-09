@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统管理 - 指标管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .nav a {
+            margin-right: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tab-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-edit {
+            background: #28a745;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-super-admin {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge-topic-admin {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .badge-user {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-admin {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .badge-member {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 系统管理</h1>
+            <p>用户和主题管理</p>
+        </div>
+
+        <div class="nav">
+            <a href="index.html">📊 指标管理</a>
+            <a href="admin.html" style="color: #764ba2; font-weight: bold;">🔧 系统管理</a>
+        </div>
+
+        <div class="content">
+            <div id="message" class="message"></div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('users')">👥 用户管理</button>
+                <button class="tab-btn" onclick="switchTab('topics')">📁 主题管理</button>
+            </div>
+
+            <!-- 用户管理 -->
+            <div id="usersTab" class="tab-content active">
+                <div class="form-section">
+                    <h2 id="userFormTitle">新增用户</h2>
+                    <form id="userForm">
+                        <input type="hidden" id="userId">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="username">用户名 *</label>
+                                <input type="text" id="username" required placeholder="请输入用户名">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password">密码 *</label>
+                                <input type="password" id="password" placeholder="请输入密码（留空则不修改）">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="realName">真实姓名</label>
+                                <input type="text" id="realName" placeholder="请输入真实姓名">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">邮箱</label>
+                                <input type="email" id="email" placeholder="请输入邮箱">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="userRole">角色 *</label>
+                                <select id="userRole" required>
+                                    <option value="">请选择角色</option>
+                                    <option value="SUPER_ADMIN">超级管理员</option>
+                                    <option value="TOPIC_ADMIN">主题管理员</option>
+                                    <option value="USER">普通用户</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="isActive">状态</label>
+                                <select id="isActive">
+                                    <option value="true">启用</option>
+                                    <option value="false">禁用</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">保存</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetUserForm()">重置</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="form-section">
+                    <h2>用户列表</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>真实姓名</th>
+                                    <th>邮箱</th>
+                                    <th>角色</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 30px;">加载中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主题管理 -->
+            <div id="topicsTab" class="tab-content">
+                <div class="form-section">
+                    <h2 id="topicFormTitle">新增主题</h2>
+                    <form id="topicForm">
+                        <input type="hidden" id="topicId">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="topicName">主题名称 *</label>
+                                <input type="text" id="topicName" required placeholder="请输入主题名称">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="topicCode">主题代码 *</label>
+                                <input type="text" id="topicCode" required placeholder="请输入主题代码（唯一）">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="topicDescription">主题描述</label>
+                            <textarea id="topicDescription" rows="3" placeholder="请输入主题描述"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">保存</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetTopicForm()">重置</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="form-section">
+                    <h2>主题列表</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>主题名称</th>
+                                    <th>主题代码</th>
+                                    <th>描述</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topicTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 30px;">加载中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主题用户分配弹窗 -->
+    <div id="userTopicModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeUserTopicModal()">&times;</span>
+            <h2 style="margin-bottom: 20px; color: #333;"> 主题用户分配</h2>
+            <div id="topicUserInfo"></div>
+            <div class="form-group" style="margin-top: 20px;">
+                <label>添加用户到主题</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="selectUser" style="flex: 1;">
+                        <option value="">选择用户</option>
+                    </select>
+                    <select id="selectUserRole" style="flex: 0.5;">
+                        <option value="MEMBER">成员</option>
+                        <option value="ADMIN">管理员</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="addUserToTopic()">添加</button>
+                </div>
+            </div>
+            <div class="table-container" style="margin-top: 20px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>用户ID</th>
+                            <th>用户名</th>
+                            <th>真实姓名</th>
+                            <th>角色</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topicUsersTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const USER_API = 'http://localhost:8080/api/users';
+        const TOPIC_API = 'http://localhost:8080/api/topics';
+        let currentTopicId = null;
+        let allUsers = [];
+        let allTopics = [];
+
+        // 显示消息
+        function showMessage(text, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = text;
+            msgDiv.className = `message ${type}`;
+            setTimeout(() => {
+                msgDiv.className = 'message';
+            }, 3000);
+        }
+
+        // 切换标签页
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        // ========== 用户管理 ==========
+
+        // 加载所有用户
+        async function loadUsers() {
+            try {
+                const response = await fetch(USER_API, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    allUsers = result.data;
+                    renderUserTable(allUsers);
+                } else {
+                    showMessage('加载失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 渲染用户表格
+        function renderUserTable(users) {
+            const tbody = document.getElementById('userTableBody');
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 30px;">暂无数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.realName || '-'}</td>
+                    <td>${user.email || '-'}</td>
+                    <td>
+                        <span class="badge badge-${user.role.toLowerCase()}">
+                            ${getRoleText(user.role)}
+                        </span>
+                    </td>
+                    <td>${user.isActive ? '启用' : '禁用'}</td>
+                    <td>${new Date(user.createdTime).toLocaleString('zh-CN')}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editUser(${user.id})">编辑</button>
+                        <button class="btn btn-danger" onclick="deleteUser(${user.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 获取角色文本
+        function getRoleText(role) {
+            const roleMap = {
+                'SUPER_ADMIN': '超级管理员',
+                'TOPIC_ADMIN': '主题管理员',
+                'USER': '普通用户'
+            };
+            return roleMap[role] || role;
+        }
+
+        // 编辑用户
+        async function editUser(id) {
+            try {
+                const response = await fetch(`${USER_API}/${id}`, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    const user = result.data;
+                    document.getElementById('userId').value = user.id;
+                    document.getElementById('username').value = user.username;
+                    document.getElementById('password').value = '';
+                    document.getElementById('realName').value = user.realName || '';
+                    document.getElementById('email').value = user.email || '';
+                    document.getElementById('userRole').value = user.role;
+                    document.getElementById('isActive').value = user.isActive.toString();
+                    
+                    document.getElementById('userFormTitle').textContent = '编辑用户';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    showMessage('加载失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 删除用户
+        async function deleteUser(id) {
+            if (!confirm('确定要删除这个用户吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${USER_API}/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('删除成功', 'success');
+                    loadUsers();
+                } else {
+                    showMessage('删除失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 重置用户表单
+        function resetUserForm() {
+            document.getElementById('userForm').reset();
+            document.getElementById('userId').value = '';
+            document.getElementById('userFormTitle').textContent = '新增用户';
+        }
+
+        // 提交用户表单
+        document.getElementById('userForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('userId').value;
+            const userData = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                realName: document.getElementById('realName').value,
+                email: document.getElementById('email').value,
+                role: document.getElementById('userRole').value,
+                isActive: document.getElementById('isActive').value === 'true'
+            };
+
+            try {
+                const url = id ? `${USER_API}/${id}` : USER_API;
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(userData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(id ? '更新成功' : '创建成功', 'success');
+                    resetUserForm();
+                    loadUsers();
+                } else {
+                    showMessage('操作失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        });
+
+        // ========== 主题管理 ==========
+
+        // 加载所有主题
+        async function loadTopics() {
+            try {
+                const response = await fetch(TOPIC_API, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    allTopics = result.data;
+                    renderTopicTable(allTopics);
+                } else {
+                    showMessage('加载失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 渲染主题表格
+        function renderTopicTable(topics) {
+            const tbody = document.getElementById('topicTableBody');
+            
+            if (!topics || topics.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px;">暂无数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = topics.map(topic => `
+                <tr>
+                    <td>${topic.id}</td>
+                    <td>${topic.topicName}</td>
+                    <td>${topic.topicCode}</td>
+                    <td>${topic.description || '-'}</td>
+                    <td>${new Date(topic.createdTime).toLocaleString('zh-CN')}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editTopic(${topic.id})">编辑</button>
+                        <button class="btn btn-danger" onclick="deleteTopic(${topic.id})">删除</button>
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="openUserTopicModal(${topic.id})">分配用户</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 编辑主题
+        async function editTopic(id) {
+            try {
+                const response = await fetch(`${TOPIC_API}/${id}`, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    const topic = result.data;
+                    document.getElementById('topicId').value = topic.id;
+                    document.getElementById('topicName').value = topic.topicName;
+                    document.getElementById('topicCode').value = topic.topicCode;
+                    document.getElementById('topicDescription').value = topic.description || '';
+                    
+                    document.getElementById('topicFormTitle').textContent = '编辑主题';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    showMessage('加载失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 删除主题
+        async function deleteTopic(id) {
+            if (!confirm('确定要删除这个主题吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${TOPIC_API}/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('删除成功', 'success');
+                    loadTopics();
+                } else {
+                    showMessage('删除失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 重置主题表单
+        function resetTopicForm() {
+            document.getElementById('topicForm').reset();
+            document.getElementById('topicId').value = '';
+            document.getElementById('topicFormTitle').textContent = '新增主题';
+        }
+
+        // 提交主题表单
+        document.getElementById('topicForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('topicId').value;
+            const topicData = {
+                topicName: document.getElementById('topicName').value,
+                topicCode: document.getElementById('topicCode').value,
+                description: document.getElementById('topicDescription').value
+            };
+
+            try {
+                const url = id ? `${TOPIC_API}/${id}` : TOPIC_API;
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(topicData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(id ? '更新成功' : '创建成功', 'success');
+                    resetTopicForm();
+                    loadTopics();
+                } else {
+                    showMessage('操作失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        });
+
+        // ========== 主题用户分配 ==========
+
+        // 打开用户分配弹窗
+        async function openUserTopicModal(topicId) {
+            currentTopicId = topicId;
+            const topic = allTopics.find(t => t.id === topicId);
+            
+            document.getElementById('topicUserInfo').innerHTML = `
+                <p><strong>主题：</strong>${topic.topicName} (${topic.topicCode})</p>
+            `;
+
+            // 加载用户列表到下拉框
+            const selectUser = document.getElementById('selectUser');
+            selectUser.innerHTML = '<option value="">选择用户</option>' + 
+                allUsers.map(user => `<option value="${user.id}">${user.username} - ${user.realName || ''}</option>`).join('');
+
+            // 加载主题下的用户
+            await loadTopicUsers(topicId);
+
+            document.getElementById('userTopicModal').style.display = 'block';
+        }
+
+        // 加载主题下的用户
+        async function loadTopicUsers(topicId) {
+            try {
+                const response = await fetch(`${USER_API}/${topicId}/topics`, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderTopicUsersTable(result.data);
+                }
+            } catch (error) {
+                console.error('加载主题用户失败:', error);
+            }
+        }
+
+        // 渲染主题用户表格
+        function renderTopicUsersTable(userTopics) {
+            const tbody = document.getElementById('topicUsersTableBody');
+            
+            if (!userTopics || userTopics.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">暂无用户</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = userTopics.map(ut => {
+                const user = allUsers.find(u => u.id === ut.userId);
+                return `
+                    <tr>
+                        <td>${ut.userId}</td>
+                        <td>${user ? user.username : '-'}</td>
+                        <td>${user ? user.realName || '-' : '-'}</td>
+                        <td>
+                            <span class="badge badge-${ut.role.toLowerCase()}">
+                                ${ut.role === 'ADMIN' ? '管理员' : '成员'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" onclick="removeUserFromTopic(${ut.userId}, ${currentTopicId})">移除</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 添加用户到主题
+        async function addUserToTopic() {
+            const userId = document.getElementById('selectUser').value;
+            const role = document.getElementById('selectUserRole').value;
+
+            if (!userId) {
+                showMessage('请选择用户', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${USER_API}/${userId}/topics/${currentTopicId}?role=${role}`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('分配成功', 'success');
+                    await loadTopicUsers(currentTopicId);
+                } else {
+                    showMessage('分配失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 从主题中移除用户
+        async function removeUserFromTopic(userId, topicId) {
+            if (!confirm('确定要移除该用户吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${USER_API}/${userId}/topics/${topicId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('移除成功', 'success');
+                    await loadTopicUsers(topicId);
+                } else {
+                    showMessage('移除失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 关闭用户分配弹窗
+        function closeUserTopicModal() {
+            document.getElementById('userTopicModal').style.display = 'none';
+            currentTopicId = null;
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('userTopicModal');
+            if (event.target === modal) {
+                closeUserTopicModal();
+            }
+        }
+
+        // 页面加载时获取数据
+        window.addEventListener('load', () => {
+            loadUsers();
+            loadTopics();
+        });
+    </script>
+</body>
+</html>
