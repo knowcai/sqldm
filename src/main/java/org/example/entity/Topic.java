@@ -1,5 +1,6 @@
 package org.example.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,6 +20,7 @@ public class Topic {
     @Column(name = "topic_name", nullable = false, length = 200)
     private String topicName;
 
+    @JsonIgnore
     @Column(name = "topic_code", nullable = false, unique = true, length = 100)
     private String topicCode;
 

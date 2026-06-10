@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,11 +20,11 @@ public class TopicService {
      */
     @Transactional
     public Topic createTopic(Topic topic) {
-        // 检查主题代码是否已存在
-        if (topicRepository.findByTopicCodeAndIsDeletedFalse(topic.getTopicCode()).isPresent()) {
-            throw new RuntimeException("主题代码已存在: " + topic.getTopicCode());
+        if (topicRepository.findByTopicNameAndIsDeletedFalse(topic.getTopicName()).isPresent()) {
+            throw new RuntimeException("主题名称已存在: " + topic.getTopicName());
         }
-        
+
+        topic.setTopicCode(generateTopicCode());
         topic.setIsDeleted(false);
         return topicRepository.save(topic);
     }
@@ -36,15 +37,13 @@ public class TopicService {
         Topic existing = topicRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("主题不存在: " + id));
 
-        // 检查新代码是否与其他主题冲突
-        if (!existing.getTopicCode().equals(topic.getTopicCode())) {
-            if (topicRepository.findByTopicCodeAndIsDeletedFalse(topic.getTopicCode()).isPresent()) {
-                throw new RuntimeException("主题代码已存在: " + topic.getTopicCode());
+        if (!existing.getTopicName().equals(topic.getTopicName())) {
+            if (topicRepository.findByTopicNameAndIsDeletedFalse(topic.getTopicName()).isPresent()) {
+                throw new RuntimeException("主题名称已存在: " + topic.getTopicName());
             }
         }
 
         existing.setTopicName(topic.getTopicName());
-        existing.setTopicCode(topic.getTopicCode());
         existing.setDescription(topic.getDescription());
         existing.setAdminId(topic.getAdminId());
 
@@ -76,5 +75,9 @@ public class TopicService {
     public Topic getTopicById(Long id) {
         return topicRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("主题不存在: " + id));
+    }
+
+    private String generateTopicCode() {
+        return "topic_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }
 }

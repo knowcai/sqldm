@@ -14,16 +14,17 @@ public interface MetricRepository extends JpaRepository<MetricDefinition, Long> 
 
     Optional<MetricDefinition> findByMetricNameAndIsDeletedFalse(String metricName);
 
-    List<MetricDefinition> findByIsDeletedFalseOrderByCreatedTimeDesc();
+    Optional<MetricDefinition> findByMetricCodeAndIsDeletedFalse(String metricCode);
 
-    List<MetricDefinition> findByMetricTypeAndIsDeletedFalse(String metricType);
+    List<MetricDefinition> findByIsDeletedFalseOrderByCreatedTimeDesc();
 
     @Query("SELECT m FROM MetricDefinition m WHERE m.isDeleted = false AND " +
            "(LOWER(m.metricName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(m.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+           "LOWER(m.metricCode) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(m.businessCaliber) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(m.owner) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(m.dataSource) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<MetricDefinition> searchMetrics(@Param("keyword") String keyword);
-    
-    List<MetricDefinition> findByTopicIdAndIsDeletedFalse(Long topicId);
-    
+
     List<MetricDefinition> findByTopicIdAndIsDeletedFalseOrderByCreatedTimeDesc(Long topicId);
 }

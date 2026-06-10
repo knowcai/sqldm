@@ -404,16 +404,9 @@
                     <form id="topicForm">
                         <input type="hidden" id="topicId">
                         
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="topicName">主题名称 *</label>
-                                <input type="text" id="topicName" required placeholder="请输入主题名称">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="topicCode">主题代码 *</label>
-                                <input type="text" id="topicCode" required placeholder="请输入主题代码（唯一）">
-                            </div>
+                        <div class="form-group">
+                            <label for="topicName">主题名称 *</label>
+                            <input type="text" id="topicName" required placeholder="请输入主题名称">
                         </div>
 
                         <div class="form-group">
@@ -436,7 +429,6 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>主题名称</th>
-                                    <th>主题代码</th>
                                     <th>描述</th>
                                     <th>创建时间</th>
                                     <th>操作</th>
@@ -444,7 +436,7 @@
                             </thead>
                             <tbody id="topicTableBody">
                                 <tr>
-                                    <td colspan="6" style="text-align: center; padding: 30px;">加载中...</td>
+                                    <td colspan="5" style="text-align: center; padding: 30px;">加载中...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -704,7 +696,7 @@
             const tbody = document.getElementById('topicTableBody');
             
             if (!topics || topics.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px;">暂无数据</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px;">暂无数据</td></tr>';
                 return;
             }
 
@@ -712,7 +704,6 @@
                 <tr>
                     <td>${topic.id}</td>
                     <td>${topic.topicName}</td>
-                    <td>${topic.topicCode}</td>
                     <td>${topic.description || '-'}</td>
                     <td>${new Date(topic.createdTime).toLocaleString('zh-CN')}</td>
                     <td>
@@ -725,28 +716,18 @@
         }
 
         // 编辑主题
-        async function editTopic(id) {
-            try {
-                const response = await fetch(`${TOPIC_API}/${id}`, {
-                    credentials: 'include'
-                });
-                const result = await response.json();
-                
-                if (result.success) {
-                    const topic = result.data;
-                    document.getElementById('topicId').value = topic.id;
-                    document.getElementById('topicName').value = topic.topicName;
-                    document.getElementById('topicCode').value = topic.topicCode;
-                    document.getElementById('topicDescription').value = topic.description || '';
-                    
-                    document.getElementById('topicFormTitle').textContent = '编辑主题';
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                } else {
-                    showMessage('加载失败: ' + result.message, 'error');
-                }
-            } catch (error) {
-                showMessage('网络错误: ' + error.message, 'error');
+        function editTopic(id) {
+            const topic = allTopics.find(t => t.id === id);
+            if (!topic) {
+                showMessage('主题不存在', 'error');
+                return;
             }
+
+            document.getElementById('topicId').value = topic.id;
+            document.getElementById('topicName').value = topic.topicName;
+            document.getElementById('topicDescription').value = topic.description || '';
+            document.getElementById('topicFormTitle').textContent = '编辑主题';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // 删除主题
@@ -787,7 +768,6 @@
             const id = document.getElementById('topicId').value;
             const topicData = {
                 topicName: document.getElementById('topicName').value,
-                topicCode: document.getElementById('topicCode').value,
                 description: document.getElementById('topicDescription').value
             };
 
@@ -826,7 +806,7 @@
             const topic = allTopics.find(t => t.id === topicId);
             
             document.getElementById('topicUserInfo').innerHTML = `
-                <p><strong>主题：</strong>${topic.topicName} (${topic.topicCode})</p>
+                <p><strong>主题：</strong>${topic.topicName}</p>
             `;
 
             // 加载用户列表到下拉框

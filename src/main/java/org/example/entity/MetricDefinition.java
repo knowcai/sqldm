@@ -19,32 +19,38 @@ public class MetricDefinition {
     @Column(name = "metric_name", nullable = false, length = 200)
     private String metricName;
 
-    @Column(name = "metric_type", nullable = false, length = 50)
-    private String metricType; // STATISTICS-统计, DETAIL-明细
-    
+    @Column(name = "metric_code", length = 100)
+    private String metricCode;
+
+    @Column(name = "business_caliber", columnDefinition = "TEXT")
+    private String businessCaliber;
+
+    /** DAY-日, MONTH-月, WEEK-周, REALTIME-实时 */
+    @Column(name = "stat_period", length = 50)
+    private String statPeriod;
+
     @Column(name = "topic_id")
     private Long topicId;
-    
+
     @Column(name = "topic_name", length = 200)
     private String topicName;
 
-    @Column(name = "main_table", nullable = false, length = 200)
-    private String mainTable;
+    @Column(name = "owner", length = 100)
+    private String owner;
 
-    @Column(name = "join_tables", columnDefinition = "TEXT")
-    private String joinTables; // JSON格式存储关联表信息
+    /** DRAFT-草稿, ACTIVE-启用, DISABLED-停用 */
+    @Column(name = "status", length = 50)
+    private String status = "ACTIVE";
 
-    @Column(name = "join_fields", columnDefinition = "TEXT")
-    private String joinFields; // JSON格式存储关联字段
+    @Column(name = "data_source", length = 200)
+    private String dataSource;
 
-    @Column(name = "dimension_fields", columnDefinition = "TEXT")
-    private String dimensionFields; // 逗号分隔的维度字段
+    @Column(name = "sql_template", columnDefinition = "TEXT")
+    private String sqlTemplate;
 
-    @Column(name = "filter_fields", columnDefinition = "TEXT")
-    private String filterFields; // JSON格式存储过滤字段
-
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    /** JSON 格式参数定义 */
+    @Column(name = "param_definition", columnDefinition = "TEXT")
+    private String paramDefinition;
 
     @Column(name = "created_by", length = 100)
     private String createdBy;
