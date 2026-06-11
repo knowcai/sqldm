@@ -27,4 +27,10 @@ public interface MetricRepository extends JpaRepository<MetricDefinition, Long> 
     List<MetricDefinition> searchMetrics(@Param("keyword") String keyword);
 
     List<MetricDefinition> findByTopicIdAndIsDeletedFalseOrderByCreatedTimeDesc(Long topicId);
+
+    List<MetricDefinition> findByStatusAndIsDeletedFalseOrderByCreatedTimeDesc(String status);
+
+    Optional<MetricDefinition> findByMetricCodeAndStatusAndIsDeletedFalse(String metricCode, String status);
+
+    Optional<MetricDefinition> findByIdAndStatusAndIsDeletedFalse(Long id, String status);
 }

@@ -1,6 +1,23 @@
 # 指标管理系统
 
 ## 版本信息
+**v0.04** - 对外 Open API、前端交互与暗色主题优化
+
+### v0.04 变更说明（2026-06-11）
+
+#### 对外 Open API
+- 新增独立模块 `org.example.openapi`，路径 `/api/open/metrics`
+- 供外部系统查询**已启用（ACTIVE）**指标的 SQL 模版、数据源与参数定义
+- **无需登录**即可访问；草稿/停用指标不会返回
+
+#### 前端优化
+- 指标新增/编辑改为**弹窗**操作，列表页增加「新增指标」按钮
+- 参数定义改为可视化编辑（参数名 + 说明，手动添加）
+- 全站切换为**黑色暗色主题**（`theme.css`）
+
+#### 数据库
+- 应用启动时自动执行 `DatabaseMigration`，修复旧版 `metric_definition` 表 NOT NULL 约束问题
+
 **v0.03** - 指标增加数据源、SQL 模版与参数定义，完善文档
 
 ### v0.03 变更说明（2026-06-10）
@@ -46,6 +63,12 @@
 这是一个基于 Spring Boot + PostgreSQL 的指标管理系统，允许业务分析人员在前端配置和管理数据分析指标。
 
 ## 功能特性
+### v0.04 新增功能
+- ✅ **对外 Open API**：外部系统按指标编码查询 SQL 模版与参数（仅返回已启用指标）
+- ✅ **弹窗式指标编辑**：列表页新增/编辑指标均在弹窗中完成
+- ✅ **可视化参数定义**：手动维护参数名与说明
+- ✅ **暗色主题**：统一黑色酷感 UI（`theme.css`）
+
 ### v0.03 新增功能
 - ✅ **数据源配置**：为指标指定查询数据源
 - ✅ **SQL 模版**：支持参数化 SQL 模版（`${paramName}`）
@@ -116,7 +139,11 @@ curl -X POST http://localhost:8080/init/users
 ```
 
 ### 5. 访问系统
-打开浏览器访问：http://localhost:8080
+- 登录页：http://localhost:8080/login.html
+- 指标管理：http://localhost:8080
+- 系统管理：http://localhost:8080/admin.html
+
+默认账号：`root` / `root`
 
 ## 权限体系
 
@@ -141,16 +168,17 @@ curl -X POST http://localhost:8080/init/users
 4. 支持编辑、删除、为用户分配主题成员/管理员
 
 ### 新增指标
-1. 填写指标名称、指标编码（均必填且唯一）
-2. 填写业务口径（必填）
-3. 选择所属主题域（必填）
-4. 选择统计周期（可选：日 / 月 / 周 / 实时）
-5. 填写负责人（必填）
-6. 选择状态（草稿 / 启用 / 停用）
-7. 填写数据源（启用/停用状态下必填，如 `vectordb`）
-8. 填写 SQL 模版（启用/停用状态下必填，可使用 `${paramName}` 占位符）
-9. 填写参数定义（可选，JSON 格式）
-10. 点击「保存」按钮
+1. 在指标列表页点击「**新增指标**」按钮，打开弹窗
+2. 填写指标名称、指标编码（均必填且唯一）
+3. 填写业务口径（必填）
+4. 选择所属主题域（必填）
+5. 选择统计周期（可选：日 / 月 / 周 / 实时）
+6. 填写负责人（必填）
+7. 选择状态（草稿 / 启用 / 停用）
+8. 填写数据源（启用/停用状态下必填，如 `vectordb`）
+9. 填写 SQL 模版（启用/停用状态下必填，可使用 `${paramName}` 占位符）
+10. 在「参数定义」中点击「添加参数」，填写参数名与说明
+11. 点击「保存」按钮
 
 > **说明**：状态为「草稿」时，数据源和 SQL 模版可暂空，便于分步保存。
 
@@ -172,9 +200,8 @@ GROUP BY city
 
 ### 编辑指标
 1. 在指标列表中找到要编辑的指标
-2. 点击「编辑」按钮
-3. 修改相关信息
-4. 点击「保存」按钮
+2. 点击「编辑」按钮，在弹窗中修改信息
+3. 点击「保存」按钮
 
 ### 删除指标
 1. 在指标列表中找到要删除的指标
@@ -189,24 +216,25 @@ GROUP BY city
 
 ## API 接口
 
-### 基础路径
+### 一、内部管理 API（需登录）
+
+#### 基础路径
 `http://localhost:8080/api/metrics`
 
-### 接口列表
+#### 接口列表
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | /api/metrics | 创建指标 |
-| PUT | /api/metrics/{id} | 更新指标 |
-| DELETE | /api/metrics/{id} | 删除指标 |
-| GET | /api/metrics | 获取所有指标 |
-| GET | /api/metrics/{id} | 根据ID获取指标 |
-| GET | /api/metrics/search?keyword=xxx | 搜索指标 |
-| GET | /api/metrics/topic/{topicId} | 按主题域获取指标 |
+| 方法 | 路径 | 说明 | 鉴权 |
+|------|------|------|------|
+| POST | /api/metrics | 创建指标 | 需登录 |
+| PUT | /api/metrics/{id} | 更新指标 | 需登录 |
+| DELETE | /api/metrics/{id} | 删除指标 | 需登录 |
+| GET | /api/metrics | 获取所有指标 | 需登录 |
+| GET | /api/metrics/{id} | 根据ID获取指标 | 需登录 |
+| GET | /api/metrics/search?keyword=xxx | 搜索指标 | 需登录 |
+| GET | /api/metrics/topic/{topicId} | 按主题域获取指标 | 需登录 |
 
-### 请求示例
+#### 创建指标示例
 
-#### 创建指标
 ```json
 POST http://localhost:8080/api/metrics
 Content-Type: application/json
@@ -224,6 +252,104 @@ Content-Type: application/json
   "paramDefinition": "[{\"name\":\"startDate\",\"type\":\"date\",\"required\":true,\"description\":\"开始日期\"}]"
 }
 ```
+
+---
+
+### 二、对外 Open API（无需登录）
+
+供其他业务系统读取**已启用**指标的 SQL 模版与参数定义。
+
+#### 基础路径
+`http://localhost:8080/api/open/metrics`
+
+#### 访问规则
+- **仅返回状态为 `ACTIVE`（启用）的指标**
+- 草稿（`DRAFT`）、停用（`DISABLED`）指标不会出现在结果中
+- 按编码/ID 查询非启用指标时，返回 `success: false`
+
+#### 接口列表
+
+| 场景 | 方法 | 请求 | 说明 |
+|------|------|------|------|
+| 查询全部已启用指标 | GET | `/api/open/metrics` | 返回列表 |
+| 按指标编码查询 | GET | `/api/open/metrics?code={metricCode}` | 返回单个指标 |
+| 按指标 ID 查询 | GET | `/api/open/metrics?id={id}` | 返回单个指标 |
+
+#### 请求示例
+
+```bash
+# 1. 查询全部已启用指标
+curl "http://localhost:8080/api/open/metrics"
+
+# 2. 按指标编码查询（推荐外部系统使用）
+curl "http://localhost:8080/api/open/metrics?code=order_cnt_daily"
+
+# 3. 按指标 ID 查询
+curl "http://localhost:8080/api/open/metrics?id=1"
+```
+
+#### 成功响应示例（按编码查询）
+
+```json
+{
+  "success": true,
+  "data": {
+    "metricCode": "order_cnt_daily",
+    "metricName": "订单量统计",
+    "dataSource": "vectordb",
+    "sqlTemplate": "SELECT city, COUNT(*) AS cnt FROM orders WHERE order_date >= ${startDate} GROUP BY city",
+    "params": [
+      {
+        "name": "startDate",
+        "type": "date",
+        "required": true,
+        "description": "开始日期"
+      }
+    ]
+  }
+}
+```
+
+#### 列表响应示例
+
+```json
+{
+  "success": true,
+  "total": 2,
+  "data": [
+    {
+      "metricCode": "order_cnt_daily",
+      "metricName": "订单量统计",
+      "dataSource": "vectordb",
+      "sqlTemplate": "SELECT ...",
+      "params": []
+    }
+  ]
+}
+```
+
+#### 失败响应示例
+
+```json
+{
+  "success": false,
+  "message": "指标不存在或未启用: NOT_EXIST"
+}
+```
+
+#### 返回字段说明
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| metricCode | String | 指标编码（外部系统主键推荐用这个） |
+| metricName | String | 指标名称 |
+| dataSource | String | 数据源标识 |
+| sqlTemplate | String | SQL 模版，含 `${paramName}` 占位符 |
+| params | Array | 参数列表 |
+| params[].name | String | 参数名 |
+| params[].type | String | 参数类型（如 string、date） |
+| params[].required | Boolean | 是否必填 |
+| params[].description | String | 参数说明 |
 
 ## 数据模型
 
@@ -297,8 +423,9 @@ Content-Type: application/json
 4. 指标名称、指标编码均不能重复
 5. 主题名称不能重复
 6. 删除操作为逻辑删除，不会真正从数据库中删除数据
-7. 前端页面已配置跨域访问，可以直接打开 HTML 文件使用
+7. 前端请通过 Spring Boot 服务访问（http://localhost:8080），不要直接双击打开 HTML 文件
 8. 旧版指标数据需补全新字段（编码、业务口径、负责人、数据源、SQL 模版等）后方可正常编辑保存
+9. 若从 v0.01 升级，应用启动时会自动迁移 `metric_definition` 表结构；也可手动执行 `migration_v003.sql`
 
 ## 项目结构
 
@@ -309,7 +436,12 @@ sqldm/
 │   │   ├── java/org/example/
 │   │   │   ├── Main.java                    # 启动类
 │   │   │   ├── config/
-│   │   │   │   └── SecurityConfig.java      # 安全配置
+│   │   │   │   ├── SecurityConfig.java      # 安全配置
+│   │   │   │   └── DatabaseMigration.java   # 启动时数据库迁移
+│   │   │   ├── openapi/                     # 对外 Open API 模块
+│   │   │   │   ├── controller/MetricOpenApiController.java
+│   │   │   │   ├── service/MetricOpenApiService.java
+│   │   │   │   └── dto/                     # 对外返回 DTO
 │   │   │   ├── entity/
 │   │   │   │   ├── MetricDefinition.java    # 指标实体
 │   │   │   │   ├── SysUser.java             # 用户实体
@@ -333,7 +465,9 @@ sqldm/
 │   │   └── resources/
 │   │       ├── application.yml              # 配置文件
 │   │       ├── schema_with_auth.sql         # 建表脚本（含权限表）
+│   │       ├── migration_v003.sql           # v0.03 表结构迁移脚本
 │   │       └── static/
+│   │           ├── theme.css                # 暗色主题样式
 │   │           ├── index.html               # 指标管理页面
 │   │           ├── login.html               # 登录页面
 │   │           └── admin.html               # 系统管理页面
@@ -350,7 +484,44 @@ sqldm/
 修改 `application.yml` 中的 `server.port` 配置。
 
 ### 3. 表不存在
-确保已执行 `schema.sql` 建表脚本。
+确保已执行 `schema_with_auth.sql` 建表脚本。
+
+### 4. 保存指标报错（main_table NOT NULL）
+旧版数据库需迁移，重启应用后会自动执行；或手动执行 `migration_v003.sql`。
+
+### 5. GitHub 连接失败
+见下方「GitHub 连接问题排查」。
+
+## GitHub 连接问题排查
+
+若 `git push` / `git fetch` 报错 `Failed to connect to github.com port 443`，可按以下步骤排查：
+
+1. **检查 Git 代理配置**
+   ```bash
+   git config --global --get http.proxy
+   git config --global --get https.proxy
+   ```
+   若配置了 `http://127.0.0.1:7890` 等本地代理，需确保代理软件（Clash、V2Ray 等）**已启动**且端口一致。
+
+2. **代理未运行时**
+   - 启动代理软件后再执行 `git fetch origin`
+   - 或临时取消代理：
+     ```bash
+     git config --global --unset http.proxy
+     git config --global --unset https.proxy
+     ```
+
+3. **直连测试**
+   ```bash
+   curl -I --connect-timeout 10 https://github.com
+   ```
+   若超时，说明当前网络无法直连 GitHub，必须使用代理或更换网络。
+
+4. **本仓库远程地址**
+   ```bash
+   git remote -v
+   ```
+   当前远程：`https://github.com/knowcai/sqldm.git`
 
 ## 开发者信息
 - 开发时间：2026年6月
