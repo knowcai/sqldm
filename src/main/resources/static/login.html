@@ -9,8 +9,10 @@
 <body class="login-page">
     <div class="login-container">
         <div class="login-header">
-            <h1>📊 指标管理系统</h1>
-            <p>请登录以继续使用</p>
+            <div class="header-brand header-brand--compact">
+                <h1>指标管理系统</h1>
+                <p>业务分析指标配置与管理平台</p>
+            </div>
         </div>
 
         <div id="message" class="message"></div>
@@ -38,7 +40,7 @@
     </div>
 
     <script>
-        const AUTH_API = 'http://localhost:8080/api/auth';
+        const AUTH_API = `${window.location.origin}/api/auth`;
 
         // 显示消息
         function showMessage(text, type) {

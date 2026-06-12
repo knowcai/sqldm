@@ -9,8 +9,10 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔧 系统管理</h1>
-            <p>用户和主题管理</p>
+            <div class="header-brand header-brand--compact">
+                <h1>系统管理</h1>
+                <p>用户、主题、API 客户端、调用日志与 Webhook</p>
+            </div>
         </div>
 
         <div class="nav">
@@ -24,6 +26,9 @@
             <div class="tab-buttons">
                 <button class="tab-btn active" onclick="switchTab('users')">👥 用户管理</button>
                 <button class="tab-btn" onclick="switchTab('topics')">📁 主题管理</button>
+                <button class="tab-btn" onclick="switchTab('apiclient')">🔑 API 客户端</button>
+                <button class="tab-btn" onclick="switchTab('accesslogs')">📋 调用日志</button>
+                <button class="tab-btn" onclick="switchTab('webhooks')">🔔 Webhook</button>
             </div>
 
             <!-- 用户管理 -->
@@ -156,6 +161,134 @@
                     </div>
                 </div>
             </div>
+
+            <!-- API 客户端 -->
+            <div id="apiclientTab" class="tab-content">
+                <div class="form-section">
+                    <h2 id="apiFormTitle">新增 API 客户端</h2>
+                    <form id="apiForm">
+                        <input type="hidden" id="apiClientId">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="apiClientName">客户端名称 *</label>
+                                <input type="text" id="apiClientName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="apiClientActive">状态</label>
+                                <select id="apiClientActive">
+                                    <option value="true">启用</option>
+                                    <option value="false">停用</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="apiClientDesc">描述</label>
+                            <input type="text" id="apiClientDesc">
+                        </div>
+                        <div class="form-group">
+                            <label for="apiClientIps">允许 IP（JSON 数组，留空不限制）</label>
+                            <input type="text" id="apiClientIps" placeholder='如 ["127.0.0.1"]'>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">保存</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetApiForm()">重置</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="form-section">
+                    <h2>API 客户端列表</h2>
+                    <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 12px;">
+                        启用任意客户端后，Open API 请求必须携带 Header <code>X-API-Key</code>
+                    </p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>名称</th>
+                                    <th>API Key</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="apiClientTableBody">
+                                <tr><td colspan="5" style="text-align:center;padding:30px;">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="accesslogsTab" class="tab-content">
+                <div class="form-section">
+                    <h2>Open API 调用统计</h2>
+                    <div id="accessLogStats" class="preview-meta">加载中...</div>
+                </div>
+                <div class="form-section">
+                    <h2>Open API 调用日志</h2>
+                    <button class="btn btn-secondary" onclick="loadAccessLogs()">刷新</button>
+                    <div class="table-container" style="margin-top:12px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>时间</th>
+                                    <th>IP</th>
+                                    <th>Key</th>
+                                    <th>指标</th>
+                                    <th>版本</th>
+                                    <th>结果</th>
+                                    <th>耗时</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accessLogTableBody">
+                                <tr><td colspan="7" style="text-align:center;padding:30px;">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="webhooksTab" class="tab-content">
+                <div class="form-section">
+                    <h2 id="whFormTitle">新增 Webhook</h2>
+                    <form id="whForm">
+                        <input type="hidden" id="whId">
+                        <div class="form-group">
+                            <label for="whName">名称 *</label>
+                            <input type="text" id="whName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="whUrl">URL *</label>
+                            <input type="text" id="whUrl" required placeholder="https://example.com/hook">
+                        </div>
+                        <div class="form-group">
+                            <label for="whEvents">订阅事件（JSON 数组）*</label>
+                            <input type="text" id="whEvents" value='["METRIC_CREATED","METRIC_UPDATED","METRIC_STATUS_CHANGE","METRIC_DELETED","METRIC_SUBMIT","METRIC_APPROVED","METRIC_REJECTED"]'>
+                        </div>
+                        <div class="form-group">
+                            <label for="whSecret">Secret（可选，通过 X-Webhook-Secret 发送）</label>
+                            <input type="text" id="whSecret">
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">保存</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetWhForm()">重置</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="form-section">
+                    <h2>Webhook 列表</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>名称</th><th>URL</th><th>状态</th><th>操作</th></tr>
+                            </thead>
+                            <tbody id="whTableBody">
+                                <tr><td colspan="5" style="text-align:center;padding:30px;">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -173,7 +306,7 @@
                     </select>
                     <select id="selectUserRole" style="flex: 0.5;">
                         <option value="MEMBER">成员</option>
-                        <option value="ADMIN">管理员</option>
+                        <option value="ADMIN">主题审批员</option>
                     </select>
                     <button class="btn btn-primary" onclick="addUserToTopic()">添加</button>
                 </div>
@@ -197,11 +330,16 @@
     </div>
 
     <script>
-        const USER_API = 'http://localhost:8080/api/users';
-        const TOPIC_API = 'http://localhost:8080/api/topics';
+        const USER_API = `${window.location.origin}/api/users`;
+        const TOPIC_API = `${window.location.origin}/api/topics`;
+        const API_CLIENT_API = `${window.location.origin}/api/api-clients`;
+        const ACCESS_LOG_API = `${window.location.origin}/api/access-logs`;
+        const WEBHOOK_API = `${window.location.origin}/api/webhooks`;
         let currentTopicId = null;
         let allUsers = [];
         let allTopics = [];
+        let allApiClients = [];
+        let allWebhooks = [];
 
         // 显示消息
         function showMessage(text, type) {
@@ -567,7 +705,7 @@
                         <td>${user ? user.realName || '-' : '-'}</td>
                         <td>
                             <span class="badge badge-${ut.role.toLowerCase()}">
-                                ${ut.role === 'ADMIN' ? '管理员' : '成员'}
+                                ${ut.role === 'ADMIN' ? '主题审批员' : '成员'}
                             </span>
                         </td>
                         <td>
@@ -648,6 +786,234 @@
         window.addEventListener('load', () => {
             loadUsers();
             loadTopics();
+            loadApiClients();
+            loadAccessLogs();
+            loadWebhooks();
+        });
+
+        // ========== 调用日志 ==========
+        async function loadAccessLogStats() {
+            const el = document.getElementById('accessLogStats');
+            try {
+                const res = await fetch(`${ACCESS_LOG_API}/stats`, { credentials: 'include' });
+                const result = await res.json();
+                const s = result.data || {};
+                const topMetrics = (s.topMetrics || []).slice(0, 5).map(m =>
+                    `${m.metricCode}(${m.count})`).join('、') || '无';
+                const topKeys = (s.topApiKeys || []).slice(0, 5).map(k =>
+                    `${k.apiKeyHint}(${k.count})`).join('、') || '无';
+                el.innerHTML = `总调用 ${s.total || 0} 次 · 成功 ${s.successCount || 0} · 失败 ${s.failCount || 0} · 失败率 ${s.failRatePercent || 0}%<br>
+                    热门指标：${topMetrics}<br>热门 Key：${topKeys}`;
+            } catch (e) {
+                el.textContent = '统计加载失败';
+            }
+        }
+
+        async function loadAccessLogs() {
+            loadAccessLogStats();
+            try {
+                const res = await fetch(ACCESS_LOG_API, { credentials: 'include' });
+                const result = await res.json();
+                const tbody = document.getElementById('accessLogTableBody');
+                const logs = result.data || [];
+                if (!logs.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;">暂无日志</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = logs.map(l => `
+                    <tr>
+                        <td>${new Date(l.createdTime).toLocaleString('zh-CN')}</td>
+                        <td>${l.clientIp || '-'}</td>
+                        <td>${l.apiKeyHint || '-'}</td>
+                        <td>${l.metricCode || l.metricId || '-'}</td>
+                        <td>${l.versionNo != null ? 'v' + l.versionNo : '-'}</td>
+                        <td>${l.success ? '成功' : '失败'}</td>
+                        <td>${l.elapsedMs != null ? l.elapsedMs + 'ms' : '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                showMessage('加载日志失败: ' + e.message, 'error');
+            }
+        }
+
+        // ========== Webhook ==========
+        async function loadWebhooks() {
+            try {
+                const res = await fetch(WEBHOOK_API, { credentials: 'include' });
+                const result = await res.json();
+                const tbody = document.getElementById('whTableBody');
+                allWebhooks = result.data || [];
+                if (!allWebhooks.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;">暂无</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = allWebhooks.map(w => `
+                    <tr>
+                        <td>${w.id}</td>
+                        <td>${w.name}</td>
+                        <td title="${w.url}">${w.url.substring(0, 40)}...</td>
+                        <td>${w.isActive ? '启用' : '停用'}</td>
+                        <td>
+                            <button class="btn btn-edit" onclick="editWebhookById(${w.id})">编辑</button>
+                            <button class="btn btn-danger" onclick="deleteWebhook(${w.id})">停用</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                showMessage('加载 Webhook 失败: ' + e.message, 'error');
+            }
+        }
+
+        function editWebhookById(id) {
+            const w = allWebhooks.find(x => x.id === id);
+            if (!w) return;
+            document.getElementById('whId').value = w.id;
+            document.getElementById('whName').value = w.name;
+            document.getElementById('whUrl').value = w.url;
+            document.getElementById('whEvents').value = w.events;
+            document.getElementById('whSecret').value = w.secret || '';
+            document.getElementById('whFormTitle').textContent = '编辑 Webhook';
+        }
+
+        function resetWhForm() {
+            document.getElementById('whForm').reset();
+            document.getElementById('whId').value = '';
+            document.getElementById('whEvents').value = '["METRIC_CREATED","METRIC_UPDATED","METRIC_STATUS_CHANGE","METRIC_DELETED","METRIC_SUBMIT","METRIC_APPROVED","METRIC_REJECTED"]';
+            document.getElementById('whFormTitle').textContent = '新增 Webhook';
+        }
+
+        async function deleteWebhook(id) {
+            if (!confirm('确定停用？')) return;
+            const res = await fetch(`${WEBHOOK_API}/${id}`, { method: 'DELETE', credentials: 'include' });
+            const result = await res.json();
+            showMessage(result.message, result.success ? 'success' : 'error');
+            if (result.success) loadWebhooks();
+        }
+
+        document.getElementById('whForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('whId').value;
+            const data = {
+                name: document.getElementById('whName').value.trim(),
+                url: document.getElementById('whUrl').value.trim(),
+                events: document.getElementById('whEvents').value.trim(),
+                secret: document.getElementById('whSecret').value.trim() || null,
+                isActive: true
+            };
+            const res = await fetch(id ? `${WEBHOOK_API}/${id}` : WEBHOOK_API, {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            showMessage(result.message, result.success ? 'success' : 'error');
+            if (result.success) { resetWhForm(); loadWebhooks(); }
+        });
+
+        // ========== API 客户端 ==========
+
+        async function loadApiClients() {
+            try {
+                const response = await fetch(API_CLIENT_API, { credentials: 'include' });
+                const result = await response.json();
+                if (result.success) {
+                    allApiClients = result.data;
+                    renderApiClientTable(allApiClients);
+                }
+            } catch (e) {
+                showMessage('加载 API 客户端失败: ' + e.message, 'error');
+            }
+        }
+
+        function renderApiClientTable(list) {
+            const tbody = document.getElementById('apiClientTableBody');
+            if (!list || !list.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;">暂无数据（未配置时 Open API 无需 Key）</td></tr>';
+                return;
+            }
+            tbody.innerHTML = list.map(c => `
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.clientName}</td>
+                    <td class="api-key-display">${c.apiKey}</td>
+                    <td>${c.isActive ? '启用' : '停用'}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editApiClient(${c.id})">编辑</button>
+                        <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="regenerateApiKey(${c.id})">重置 Key</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editApiClient(id) {
+            const c = allApiClients.find(x => x.id === id);
+            if (!c) return;
+            document.getElementById('apiClientId').value = c.id;
+            document.getElementById('apiClientName').value = c.clientName;
+            document.getElementById('apiClientDesc').value = c.description || '';
+            document.getElementById('apiClientIps').value = c.allowedIps || '';
+            document.getElementById('apiClientActive').value = String(c.isActive);
+            document.getElementById('apiFormTitle').textContent = '编辑 API 客户端';
+        }
+
+        function resetApiForm() {
+            document.getElementById('apiForm').reset();
+            document.getElementById('apiClientId').value = '';
+            document.getElementById('apiFormTitle').textContent = '新增 API 客户端';
+        }
+
+        async function regenerateApiKey(id) {
+            if (!confirm('确定重新生成 API Key？旧 Key 将立即失效')) return;
+            try {
+                const response = await fetch(`${API_CLIENT_API}/${id}/regenerate-key`, {
+                    method: 'POST', credentials: 'include'
+                });
+                const result = await response.json();
+                showMessage(result.message, result.success ? 'success' : 'error');
+                if (result.success) loadApiClients();
+            } catch (e) {
+                showMessage('操作失败: ' + e.message, 'error');
+            }
+        }
+
+        document.getElementById('apiForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('apiClientId').value;
+            const ipsRaw = document.getElementById('apiClientIps').value.trim();
+            let allowedIps = null;
+            if (ipsRaw) {
+                try {
+                    JSON.parse(ipsRaw);
+                    allowedIps = ipsRaw;
+                } catch (err) {
+                    showMessage('允许 IP 必须是合法 JSON 数组', 'error');
+                    return;
+                }
+            }
+            const data = {
+                clientName: document.getElementById('apiClientName').value.trim(),
+                description: document.getElementById('apiClientDesc').value.trim(),
+                allowedIps: allowedIps,
+                isActive: document.getElementById('apiClientActive').value === 'true'
+            };
+            try {
+                const url = id ? `${API_CLIENT_API}/${id}` : API_CLIENT_API;
+                const response = await fetch(url, {
+                    method: id ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                showMessage(result.message, result.success ? 'success' : 'error');
+                if (result.success) {
+                    resetApiForm();
+                    loadApiClients();
+                }
+            } catch (e) {
+                showMessage('保存失败: ' + e.message, 'error');
+            }
         });
     </script>
 </body>

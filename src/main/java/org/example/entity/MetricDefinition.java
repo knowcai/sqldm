@@ -1,5 +1,6 @@
 package org.example.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -38,7 +39,7 @@ public class MetricDefinition {
     @Column(name = "owner", length = 100)
     private String owner;
 
-    /** DRAFT-草稿, ACTIVE-启用, DISABLED-停用 */
+    /** DRAFT-草稿, PENDING_APPROVAL-待审批, ACTIVE-启用, DISABLED-停用, REJECTED-已驳回 */
     @Column(name = "status", length = 50)
     private String status = "ACTIVE";
 
@@ -51,6 +52,10 @@ public class MetricDefinition {
     /** JSON 格式参数定义 */
     @Column(name = "param_definition", columnDefinition = "TEXT")
     private String paramDefinition;
+
+    /** JSON 格式允许访问 Open API 的 IP 列表，空表示不限制 */
+    @Column(name = "allowed_ips", columnDefinition = "TEXT")
+    private String allowedIps;
 
     @Column(name = "created_by", length = 100)
     private String createdBy;
@@ -68,4 +73,17 @@ public class MetricDefinition {
 
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
+
+    @Transient
+    private java.util.List<String> tags;
+
+    @Transient
+    private Boolean favorited;
+
+    @Transient
+    private Boolean hasPendingUpdate;
+
+    @Transient
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private java.util.List<String> duplicateWarnings;
 }

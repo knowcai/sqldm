@@ -2,6 +2,7 @@ package org.example.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.entity.SysUser;
+import org.example.service.TopicApprovalService;
 import org.example.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,6 +30,7 @@ public class AuthController {
     private final UserDetailsService userDetailsService;
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
+    private final TopicApprovalService topicApprovalService;
 
     /**
      * 用户登录
@@ -104,6 +106,13 @@ public class AuthController {
             userInfo.put("username", user.getUsername());
             userInfo.put("realName", user.getRealName());
             userInfo.put("role", user.getRole());
+            userInfo.put("canApprove", !topicApprovalService.getApprovableTopicIds(user).isEmpty());
+            userInfo.put("canDeleteMetric", topicApprovalService.isSuperAdmin(user)
+                    || topicApprovalService.isTopicApprover(user));
+            userInfo.put("canAccessAdmin", topicApprovalService.canAccessAdmin(user));
+            userInfo.put("isTopicApprover", topicApprovalService.isTopicApprover(user));
+            userInfo.put("approvableTopicIds", topicApprovalService.getApprovableTopicIds(user));
+            userInfo.put("roleHint", buildRoleHint(user));
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -127,5 +136,18 @@ public class AuthController {
                 "success", true,
                 "message", "登出成功"
         ));
+    }
+
+    private String buildRoleHint(SysUser user) {
+        if (topicApprovalService.isSuperAdmin(user)) {
+            return "超级管理员，可审批全部主题";
+        }
+        if (topicApprovalService.isTopicApprover(user)) {
+            return "主题审批员（UserTopic.ADMIN），可审批所负责主题";
+        }
+        if ("TOPIC_ADMIN".equals(user.getRole())) {
+            return "系统角色「主题管理员」≠ 主题审批员，需在用户-主题分配中设为「主题审批员」方可审批";
+        }
+        return "普通用户，提交变更需主题审批员审核";
     }
 }

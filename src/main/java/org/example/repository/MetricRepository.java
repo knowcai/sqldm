@@ -14,6 +14,8 @@ public interface MetricRepository extends JpaRepository<MetricDefinition, Long> 
 
     Optional<MetricDefinition> findByMetricNameAndIsDeletedFalse(String metricName);
 
+    Optional<MetricDefinition> findByMetricNameAndTopicIdAndIsDeletedFalse(String metricName, Long topicId);
+
     Optional<MetricDefinition> findByMetricCodeAndIsDeletedFalse(String metricCode);
 
     List<MetricDefinition> findByIsDeletedFalseOrderByCreatedTimeDesc();
@@ -33,4 +35,13 @@ public interface MetricRepository extends JpaRepository<MetricDefinition, Long> 
     Optional<MetricDefinition> findByMetricCodeAndStatusAndIsDeletedFalse(String metricCode, String status);
 
     Optional<MetricDefinition> findByIdAndStatusAndIsDeletedFalse(Long id, String status);
+
+    List<MetricDefinition> findByOwnerAndIsDeletedFalseOrderByCreatedTimeDesc(String owner);
+
+    List<MetricDefinition> findByTopicIdInAndIsDeletedFalseOrderByCreatedTimeDesc(List<Long> topicIds);
+
+    List<MetricDefinition> findByIdInAndIsDeletedFalse(List<Long> ids);
+
+    List<MetricDefinition> findByStatusAndTopicIdInAndIsDeletedFalseOrderByCreatedTimeDesc(
+            String status, List<Long> topicIds);
 }

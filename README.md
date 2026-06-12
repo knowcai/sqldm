@@ -1,6 +1,58 @@
 # 指标管理系统
 
 ## 版本信息
+**v0.05** - 指标目录、Open API 治理、审批流、工程化底座（不含 SQL 试跑/数据源连接管理）
+
+### v0.05 变更说明（2026-06-12）
+
+#### 审批流增强
+- **主题审批员**（UserTopic.ADMIN）审批所负责主题；系统角色 TOPIC_ADMIN ≠ 审批权限（UI 有说明）
+- 审批弹窗展示完整指标详情与变更 diff
+- **我的申请**：提交人查看待审/驳回项，驳回后可编辑重新提交
+- Webhook 新增事件：`METRIC_SUBMIT`、`METRIC_APPROVED`、`METRIC_REJECTED`
+- 删除权限与审批权限对齐（主题审批员 / 超级管理员）
+
+#### 列表与发现
+- 搜索、主题、状态、标签、排序 **统一** 于 `GET /api/metrics`
+- 列表星标收藏、「变更审」「可重提」状态提示
+- 详情 SQL 等宽展示；Open API curl 调用示例
+- 前端 API 地址使用 `window.location.origin`
+
+#### Open API 治理
+- 调用日志统计：总量、失败率、热门指标/Key（`/api/access-logs/stats`）
+
+#### 规则与工程
+- 指标名称 **主题内唯一**，编码 **全局唯一**
+- JPA `ddl-auto: validate`，结构变更仅通过 Flyway
+- 单元测试：编码校验、IP 白名单、审批字段 Diff（MetricDiffHelperTest）；API 自测脚本 `scripts/self-test.ps1`
+
+#### 指标目录（方案 1）
+- **标签体系**：指标可打多个标签，列表支持按标签筛选
+- **详情增强**：弹窗展示主题、更新时间、标签；支持收藏（列表星标）
+- **参数 Schema**：Open API 返回完整参数结构（type/required/description）
+- **命名规范**：指标编码默认校验大写字母+数字+下划线（可配置关闭）
+
+#### Open API 治理（方案 2）
+- **调用日志**：记录 Open API 每次访问（IP、指标、成功/失败、耗时）
+- **Swagger 文档**：`/swagger-ui.html`
+- **按版本查询**：`GET /api/open/metrics?code=xxx&version=2`
+- Open API 响应增加口径、周期、主题、标签、版本号
+
+#### 协作与治理（方案 3）
+- **重复检测**：同主题下同名/同编码/名称相似时保存提示 warnings
+- **Webhook**：指标创建/更新/状态变更/删除时异步通知（系统管理配置）
+- **审批流**（v0.06 完善）：普通用户提交新增/变更，主题审批员按主题维度审批
+
+#### 工程化（方案 4）
+- **Flyway** 数据库迁移（`src/main/resources/db/migration/`）
+- **Docker Compose**：`docker-compose.yml` 一键启动
+- **Actuator**：`/actuator/health`
+- **单元测试**：编码校验、IP 白名单
+- **application-prod.yml**：生产配置外置模板
+
+#### 定位说明
+- `dataSource` 为**元数据标识**（告诉下游用哪个库/仓），本系统**不管理 JDBC 连接、不提供 SQL 试跑**
+
 **v0.04** - 对外 Open API、前端交互与暗色主题优化
 
 ### v0.04 变更说明（2026-06-11）

@@ -56,20 +56,44 @@ body {
 .header {
     background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
     color: var(--text-primary);
-    padding: 30px;
-    text-align: center;
+    padding: 24px 30px;
+    text-align: left;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
 }
 
-.header h1 {
+.header-brand {
+    display: inline-block;
+    padding: 14px 22px;
+    border: 2px solid #ff1744;
+    border-radius: 8px;
+    box-shadow: 0 0 12px rgba(255, 23, 68, 0.35), inset 0 0 20px rgba(255, 23, 68, 0.06);
+    background: rgba(255, 23, 68, 0.06);
+}
+
+.header-brand h1 {
     font-size: 28px;
-    margin-bottom: 10px;
+    margin: 0 0 6px 0;
     letter-spacing: 1px;
+    color: #ff1744;
+    font-weight: 700;
 }
 
-.header p {
-    color: var(--text-secondary);
+.header-brand p {
+    margin: 0;
     font-size: 14px;
+    color: #ff4569;
+    letter-spacing: 0.5px;
+}
+
+.header-brand--compact h1 {
+    font-size: 24px;
+}
+
+.header-brand--compact p {
+    font-size: 13px;
 }
 
 .nav {
@@ -547,6 +571,71 @@ tbody tr:hover {
     background: rgba(34, 197, 94, 0.1);
 }
 
+.ip-list-header {
+    display: grid;
+    grid-template-columns: 1fr 70px;
+    gap: 10px;
+    padding: 0 5px 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+}
+
+.ip-row {
+    display: grid;
+    grid-template-columns: 1fr 70px;
+    gap: 10px;
+    margin-bottom: 8px;
+    align-items: center;
+}
+
+.api-url-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.api-url-row input {
+    flex: 1;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    cursor: text;
+}
+
+.btn-copy {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.btn-copy:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.btn-view {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-light);
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-right: 5px;
+}
+
+.btn-view:hover {
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+}
+
 /* Tab 按钮（admin 页） */
 .tab-buttons {
     margin-bottom: 20px;
@@ -585,6 +674,143 @@ tbody tr:hover {
     display: block;
 }
 
+.modal-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+}
+
+.modal-tab {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.modal-tab.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+}
+
+.modal-tab-panel {
+    display: none;
+}
+
+.modal-tab-panel.active {
+    display: block;
+}
+
+.preview-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 10px 0;
+}
+
+.preview-sql {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    padding: 10px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    margin-bottom: 12px;
+    word-break: break-all;
+}
+
+.preview-param-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 10px;
+    margin-bottom: 8px;
+    align-items: center;
+}
+
+.version-list, .audit-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.version-item, .audit-item {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: var(--bg-input);
+}
+
+.version-item h4, .audit-item h4 {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.version-item p, .audit-item p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.modal-content-wide {
+    max-width: 920px;
+    width: 95%;
+}
+
+.sql-preview {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 200px;
+    overflow: auto;
+    color: var(--text-primary);
+}
+
+.approval-preview-block {
+    margin-top: 10px;
+    padding: 10px;
+    border-left: 3px solid var(--accent);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.approval-preview-block h5 {
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: var(--accent);
+}
+
+.diff-fields {
+    color: var(--accent) !important;
+    font-weight: 500;
+}
+
+.reject-hint {
+    color: #ff6b6b !important;
+    margin-top: 6px;
+}
+
+.btn-star {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #ffd166;
+    padding: 0;
+}
+
+.api-key-display {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    word-break: break-all;
+}
+
 /* 登录页 */
 body.login-page {
     display: flex;
@@ -608,16 +834,8 @@ body.login-page {
     margin-bottom: 30px;
 }
 
-.login-header h1 {
-    color: var(--text-primary);
-    font-size: 28px;
-    margin-bottom: 10px;
-    letter-spacing: 1px;
-}
-
-.login-header p {
-    color: var(--text-secondary);
-    font-size: 14px;
+.login-header .header-brand {
+    text-align: left;
 }
 
 .login-container .btn {
@@ -661,4 +879,10 @@ body.login-page {
     border-radius: 6px;
     border: 1px solid var(--border);
     min-height: 50px;
+}
+
+.btn-filter.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
 }
