@@ -1,59 +1,56 @@
 # 指标管理系统
 
 ## 版本信息
-**v0.05** - 指标目录、Open API 治理、审批流、工程化底座（不含 SQL 试跑/数据源连接管理）
+
+| 版本 | 日期 | 说明 |
+|------|------|------|
+| **v0.05**（当前） | 2026-06-12 | 指标目录、Open API 治理、审批流、工程化底座 |
+| v0.04 | 2026-06-11 | 对外 Open API、弹窗编辑、暗色主题 |
+| v0.03 | 2026-06-10 | 数据源 / SQL 模版 / 参数定义 |
+| v0.02 | 2026-06-10 | 指标与主题数据模型重构 |
+| v0.01 | — | 主题管理、账号体系 |
+
+> 定位：`dataSource` 为**元数据标识**（告诉下游用哪个库/仓），本系统**不管理 JDBC 连接、不提供 SQL 试跑**。
 
 ### v0.05 变更说明（2026-06-12）
 
-#### 审批流增强
-- **主题审批员**（UserTopic.ADMIN）审批所负责主题；系统角色 TOPIC_ADMIN ≠ 审批权限（UI 有说明）
-- 审批弹窗展示完整指标详情与变更 diff
-- **我的申请**：提交人查看待审/驳回项，驳回后可编辑重新提交
-- Webhook 新增事件：`METRIC_SUBMIT`、`METRIC_APPROVED`、`METRIC_REJECTED`
+**v0.05** = 指标目录增强 + Open API 治理 + 协作审批 + 工程化底座。
+
+#### 指标目录
+- **标签体系**：指标可打多个标签，列表支持按标签筛选
+- **列表增强**：搜索、主题、状态、标签、排序统一于 `GET /api/metrics`；列表星标收藏
+- **详情增强**：弹窗展示主题、更新时间、标签；SQL 等宽展示；Open API curl 示例
+- **命名规范**：指标编码默认校验大写字母+数字+下划线（可配置关闭）
+- **重复检测**：同主题下同名/同编码/名称相似时保存提示 warnings
+- 指标名称**主题内唯一**，编码**全局唯一**
+
+#### 审批流
+- 普通用户提交新增/变更 → **主题审批员**（`UserTopic.ADMIN`）按主题维度审批
+- 系统角色 `TOPIC_ADMIN` **不等于**审批权限（需在用户-主题分配中设为「主题审批员」）
+- 审批弹窗展示完整指标详情与变更 diff；**我的申请**查看待审/驳回项，驳回后可重新提交
+- 状态：`DRAFT` / `PENDING_APPROVAL` / `ACTIVE` / `DISABLED` / `REJECTED`
 - 删除权限与审批权限对齐（主题审批员 / 超级管理员）
 
-#### 列表与发现
-- 搜索、主题、状态、标签、排序 **统一** 于 `GET /api/metrics`
-- 列表星标收藏、「变更审」「可重提」状态提示
-- 详情 SQL 等宽展示；Open API curl 调用示例
-- 前端 API 地址使用 `window.location.origin`
-
 #### Open API 治理
-- 调用日志统计：总量、失败率、热门指标/Key（`/api/access-logs/stats`）
-
-#### 规则与工程
-- 指标名称 **主题内唯一**，编码 **全局唯一**
-- JPA `ddl-auto: validate`，结构变更仅通过 Flyway
-- 单元测试：编码校验、IP 白名单、审批字段 Diff（MetricDiffHelperTest）；API 自测脚本 `scripts/self-test.ps1`
-
-#### 指标目录（方案 1）
-- **标签体系**：指标可打多个标签，列表支持按标签筛选
-- **详情增强**：弹窗展示主题、更新时间、标签；支持收藏（列表星标）
-- **参数 Schema**：Open API 返回完整参数结构（type/required/description）
-- **命名规范**：指标编码默认校验大写字母+数字+下划线（可配置关闭）
-
-#### Open API 治理（方案 2）
-- **调用日志**：记录 Open API 每次访问（IP、指标、成功/失败、耗时）
-- **Swagger 文档**：`/swagger-ui.html`
+- **调用日志**：记录每次 Open API 访问（IP、指标、成功/失败、耗时）
+- **调用统计**：`/api/access-logs/stats`（总量、失败率、热门指标/Key）
+- **Swagger**：`/swagger-ui.html`
 - **按版本查询**：`GET /api/open/metrics?code=xxx&version=2`
-- Open API 响应增加口径、周期、主题、标签、版本号
+- **API Key** + 指标级 IP 白名单；Open API 响应增加口径、周期、主题、标签、版本号
 
-#### 协作与治理（方案 3）
-- **重复检测**：同主题下同名/同编码/名称相似时保存提示 warnings
-- **Webhook**：指标创建/更新/状态变更/删除时异步通知（系统管理配置）
-- **审批流**（v0.06 完善）：普通用户提交新增/变更，主题审批员按主题维度审批
+#### 协作通知
+- **Webhook**：支持 `METRIC_CREATED` / `UPDATED` / `STATUS_CHANGE` / `DELETED` / `SUBMIT` / `APPROVED` / `REJECTED`
+- **版本快照**与**操作审计**：ACTIVE 状态保存时自动快照
 
-#### 工程化（方案 4）
+#### 工程化
 - **Flyway** 数据库迁移（`src/main/resources/db/migration/`）
 - **Docker Compose**：`docker-compose.yml` 一键启动
 - **Actuator**：`/actuator/health`
-- **单元测试**：编码校验、IP 白名单
-- **application-prod.yml**：生产配置外置模板
+- JPA `ddl-auto: validate`，结构变更仅通过 Flyway
+- 单元测试 + API 自测脚本 `scripts/self-test.ps1`
+- 前端 API 地址使用 `window.location.origin`（不再硬编码 localhost）
 
-#### 定位说明
-- `dataSource` 为**元数据标识**（告诉下游用哪个库/仓），本系统**不管理 JDBC 连接、不提供 SQL 试跑**
-
-**v0.04** - 对外 Open API、前端交互与暗色主题优化
+---
 
 ### v0.04 变更说明（2026-06-11）
 
@@ -115,6 +112,17 @@
 这是一个基于 Spring Boot + PostgreSQL 的指标管理系统，允许业务分析人员在前端配置和管理数据分析指标。
 
 ## 功能特性
+
+### v0.05 新增功能（当前版本）
+- ✅ **标签体系**：多标签打标，列表按标签筛选
+- ✅ **统一列表**：搜索 + 主题 + 状态 + 标签 + 排序一次查询
+- ✅ **收藏星标**：列表/详情收藏指标
+- ✅ **审批流**：普通用户提交，主题审批员审批；我的申请、变更 diff、驳回重提
+- ✅ **Open API 治理**：调用日志、统计、API Key、IP 白名单、按版本查询
+- ✅ **Webhook**：指标创建/更新/审批等事件异步通知
+- ✅ **版本快照与审计**：ACTIVE 保存自动快照，操作留痕
+- ✅ **工程化**：Flyway 迁移、Docker Compose、Actuator 健康检查、自测脚本
+
 ### v0.04 新增功能
 - ✅ **对外 Open API**：外部系统按指标编码查询 SQL 模版与参数（仅返回已启用指标）
 - ✅ **弹窗式指标编辑**：列表页新增/编辑指标均在弹窗中完成
@@ -206,10 +214,13 @@ curl -X POST http://localhost:8080/init/users
 | 主题管理员 | admin1/admin2 | admin1/admin2 | 可管理主题下的指标和成员 |
 | 普通用户 | user1/user2 | user1/user2 | 只有查询权限 |
 
-### 权限规则
-- **超级管理员**：可以创建/编辑/删除用户，创建/编辑/删除主题，分配主题管理员
-- **主题管理员**：可以创建/编辑/删除指标，分配主题成员
-- **普通用户**：只能查看指标，不能编辑
+### 权限规则（v0.05）
+- **超级管理员**：用户/主题/API 客户端/Webhook/调用日志管理；可审批全部主题；可删除任意主题下指标
+- **主题审批员**（用户-主题分配中角色为「主题审批员」）：可审批所负责主题下的指标新增/变更；可删除该主题下指标
+- **系统角色 TOPIC_ADMIN**：不等于审批权限，需在主题分配中单独设为审批员
+- **普通用户**：可创建/编辑指标（变更走审批）；可查看；不可删除
+
+> 旧版「主题管理员可随意删改指标」描述已废弃，以 v0.05 审批模型为准。
 
 ## 使用说明
 
@@ -280,10 +291,14 @@ GROUP BY city
 | POST | /api/metrics | 创建指标 | 需登录 |
 | PUT | /api/metrics/{id} | 更新指标 | 需登录 |
 | DELETE | /api/metrics/{id} | 删除指标 | 需登录 |
-| GET | /api/metrics | 获取所有指标 | 需登录 |
+| GET | /api/metrics | 获取指标列表（支持 keyword/topicId/status/tag/sort） | 需登录 |
 | GET | /api/metrics/{id} | 根据ID获取指标 | 需登录 |
-| GET | /api/metrics/search?keyword=xxx | 搜索指标 | 需登录 |
+| GET | /api/metrics/search?keyword=xxx | 搜索指标（兼容旧路径，建议用列表统一查询） | 需登录 |
 | GET | /api/metrics/topic/{topicId} | 按主题域获取指标 | 需登录 |
+| GET | /api/approvals/pending | 待我审批列表 | 需登录 |
+| GET | /api/approvals/my-submissions | 我的申请 | 需登录 |
+| POST | /api/approvals/create/{id}/approve | 通过新增申请 | 主题审批员 |
+| POST | /api/approvals/update/{id}/approve | 通过变更申请 | 主题审批员 |
 
 #### 创建指标示例
 
@@ -417,7 +432,7 @@ curl "http://localhost:8080/api/open/metrics?id=1"
 | topic_id | BIGINT | 所属主题域 ID |
 | topic_name | VARCHAR(200) | 所属主题域名称（冗余） |
 | owner | VARCHAR(100) | 负责人 |
-| status | VARCHAR(50) | 状态（DRAFT/ACTIVE/DISABLED） |
+| status | VARCHAR(50) | 状态（DRAFT/PENDING_APPROVAL/ACTIVE/DISABLED/REJECTED） |
 | data_source | VARCHAR(200) | 数据源 |
 | sql_template | TEXT | SQL 模版 |
 | param_definition | TEXT | 参数定义（JSON） |
