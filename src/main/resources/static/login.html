@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 指标管理系统</title>
+    <link rel="stylesheet" href="theme.css">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-header">
+            <div class="app-brand">
+                <div class="app-brand__mark" aria-hidden="true">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="6" y="22" width="6" height="12" rx="2" fill="currentColor" opacity="0.55"/>
+                        <rect x="17" y="14" width="6" height="20" rx="2" fill="currentColor" opacity="0.8"/>
+                        <rect x="28" y="8" width="6" height="26" rx="2" fill="currentColor"/>
+                        <path d="M5 34h30" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+                    </svg>
+                </div>
+                <div class="app-brand__text">
+                    <h1 class="app-brand__title">指标管理系统</h1>
+                    <p class="app-brand__subtitle">业务分析指标配置与管理平台</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" required placeholder="请输入用户名">
+            </div>
+
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" required placeholder="请输入密码">
+            </div>
+
+            <button type="submit" class="btn btn-primary">登录</button>
+        </form>
+    </div>
+
+    <script>
+        const AUTH_API = `${window.location.origin}/api/auth`;
+
+        // 显示消息
+        function showMessage(text, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = text;
+            msgDiv.className = `message ${type}`;
+            setTimeout(() => {
+                msgDiv.className = 'message';
+            }, 3000);
+        }
+
+        // 登录表单提交
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${AUTH_API}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('登录成功，正在跳转...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    showMessage('登录失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        });
+
+        // 页面加载时检查是否已登录
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch(`${AUTH_API}/current`, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 已登录，直接跳转
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                // 未登录，停留在登录页面
+            }
+        });
+    </script>
+</body>
+</html>

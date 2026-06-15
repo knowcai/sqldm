@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统管理 - 指标管理系统</title>
+    <link rel="stylesheet" href="theme.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="app-brand app-brand--compact">
+                <div class="app-brand__mark" aria-hidden="true">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="6" y="22" width="6" height="12" rx="2" fill="currentColor" opacity="0.55"/>
+                        <rect x="17" y="14" width="6" height="20" rx="2" fill="currentColor" opacity="0.8"/>
+                        <rect x="28" y="8" width="6" height="26" rx="2" fill="currentColor"/>
+                        <path d="M5 34h30" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+                    </svg>
+                </div>
+                <div class="app-brand__text">
+                    <h1 class="app-brand__title">系统管理</h1>
+                    <p class="app-brand__subtitle">用户与主题管理</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav">
+            <a href="index.html">📊 指标管理</a>
+            <a href="admin.html" class="active">🔧 系统管理</a>
+        </div>
+
+        <div class="content">
+            <div id="message" class="message"></div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('users')">👥 用户管理</button>
+                <button class="tab-btn" onclick="switchTab('topics')">📁 主题管理</button>
+            </div>
+
+            <!-- 用户管理 -->
+            <div id="usersTab" class="tab-content active">
+                <div class="form-section" id="userListSection">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                        <h2 style="margin:0;">用户列表</h2>
+                        <button type="button" id="btnAddUser" class="btn btn-primary" onclick="openCreateUserModal()" style="display:none;">新增用户</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>真实姓名</th>
+                                    <th>邮箱</th>
+                                    <th>系统角色</th>
+                                    <th>主题分配</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                                <tr>
+                                    <td colspan="9" style="text-align: center; padding: 30px;">加载中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主题管理 -->
+            <div id="topicsTab" class="tab-content">
+                <div class="form-section">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                        <h2 style="margin:0;">主题列表</h2>
+                        <button type="button" id="btnAddTopic" class="btn btn-primary" onclick="openCreateTopicModal()" style="display:none;">新增主题</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>主题名称</th>
+                                    <th>描述</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topicTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 30px;">加载中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户新增/编辑弹窗 -->
+    <div id="userModal" class="modal" onclick="if(event.target===this)closeUserModal()">
+        <div class="modal-content modal-content-wide">
+            <span class="close" onclick="closeUserModal()">&times;</span>
+            <h2 id="userFormTitle">新增用户</h2>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">用户名 *</label>
+                        <input type="text" id="username" required placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码 <span id="passwordHint">*</span></label>
+                        <input type="password" id="password" placeholder="请输入密码（编辑时留空则不修改）">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="realName">真实姓名</label>
+                        <input type="text" id="realName" placeholder="请输入真实姓名">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">邮箱</label>
+                        <input type="email" id="email" placeholder="请输入邮箱">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userRole">系统角色 *</label>
+                        <select id="userRole" required onchange="onUserRoleChange()">
+                            <option value="">请选择角色</option>
+                            <option value="SUPER_ADMIN">超级管理员</option>
+                            <option value="TOPIC_ADMIN">主题管理员</option>
+                            <option value="USER">普通用户</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="isActive">状态</label>
+                        <select id="isActive">
+                            <option value="true">启用</option>
+                            <option value="false">禁用</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-section" id="topicAssignSection" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+                    <h3 style="margin:0 0 8px;font-size:15px;">主题分配</h3>
+                    <p id="topicAssignHint" style="color:var(--text-secondary);font-size:12px;margin:0 0 12px;">
+                        主题内角色由系统角色决定：主题管理员在所选主题下为审批员，普通用户为成员。主题审批员仅可为普通用户分配成员身份，不能授予审批权限。
+                    </p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:48px;">分配</th>
+                                    <th>主题名称</th>
+                                    <th style="width:160px;">主题内角色</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTopicAssignBody">
+                                <tr><td colspan="3" style="text-align:center;padding:20px;">加载主题中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="form-group" style="display:flex;gap:10px;margin-top:16px;">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeUserModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 主题新增/编辑弹窗 -->
+    <div id="topicModal" class="modal" onclick="if(event.target===this)closeTopicModal()">
+        <div class="modal-content">
+            <span class="close" onclick="closeTopicModal()">&times;</span>
+            <h2 id="topicFormTitle">新增主题</h2>
+            <form id="topicForm">
+                <input type="hidden" id="topicId">
+                <div class="form-group">
+                    <label for="topicName">主题名称 *</label>
+                    <input type="text" id="topicName" required placeholder="请输入主题名称">
+                </div>
+                <div class="form-group">
+                    <label for="topicDescription">主题描述</label>
+                    <textarea id="topicDescription" rows="3" placeholder="请输入主题描述"></textarea>
+                </div>
+                <div class="form-group" style="display:flex;gap:10px;">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeTopicModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const AUTH_API = `${window.location.origin}/api/auth`;
+        const USER_API = `${window.location.origin}/api/users`;
+        const TOPIC_API = `${window.location.origin}/api/topics`;
+        let currentUser = null;
+        let allUsers = [];
+        let allTopics = [];
+
+        // 显示消息
+        function showMessage(text, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = text;
+            msgDiv.className = `message ${type}`;
+            setTimeout(() => {
+                msgDiv.className = 'message';
+            }, 3000);
+        }
+
+        // 切换标签页
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        function switchTabByName(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('onclick') === `switchTab('${tab}')`) {
+                    btn.classList.add('active');
+                }
+            });
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        function isFullAdminUser() {
+            return !!(currentUser && (currentUser.isFullAdmin || currentUser.role === 'SUPER_ADMIN'));
+        }
+
+        function isTopicApproverOnly() {
+            return !!(currentUser && !isFullAdminUser()
+                && (currentUser.isTopicApprover || currentUser.canManageTopicUsers));
+        }
+
+        function canManageUsers() {
+            return !!(currentUser && (isFullAdminUser() || currentUser.canManageTopicUsers || currentUser.canApprove));
+        }
+
+        function applyAdminPermissions() {
+            if (!currentUser) return;
+            const isFull = isFullAdminUser();
+            const btnAddTopic = document.getElementById('btnAddTopic');
+            if (btnAddTopic) {
+                btnAddTopic.style.display = isFull ? 'inline-block' : 'none';
+            }
+            const btnAddUser = document.getElementById('btnAddUser');
+            if (btnAddUser) {
+                btnAddUser.style.display = isFull ? 'inline-block' : 'none';
+            }
+        }
+
+        async function checkLogin() {
+            try {
+                const response = await fetch(`${AUTH_API}/current`, { credentials: 'include' });
+                const result = await response.json();
+                if (result.success && result.data.canAccessAdmin) {
+                    currentUser = result.data;
+                } else {
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // ========== 用户管理 ==========
+
+        async function fetchApiJson(url, options = {}) {
+            const response = await fetch(url, { credentials: 'include', ...options });
+            let result = {};
+            try {
+                result = await response.json();
+            } catch (e) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            if (!response.ok && result.message == null) {
+                result.message = result.error || `HTTP ${response.status}`;
+                result.success = false;
+            }
+            return result;
+        }
+
+        let allTopicsForAssign = [];
+
+        function parseUserDetailResponse(data) {
+            if (!data) return { user: null, topicAssignments: [] };
+            if (data.user) {
+                return { user: data.user, topicAssignments: data.topicAssignments || [] };
+            }
+            return { user: data, topicAssignments: data.topicAssignments || [] };
+        }
+
+        // 加载所有用户
+        async function loadUsers() {
+            try {
+                const result = await fetchApiJson(USER_API);
+                if (result.success) {
+                    allUsers = result.data || [];
+                    if (isFullAdminUser() || isTopicApproverOnly()) {
+                        await Promise.all(allUsers.map(async (u) => {
+                            try {
+                                const detail = await fetchApiJson(`${USER_API}/${u.id}`);
+                                if (detail.success) {
+                                    const parsed = parseUserDetailResponse(detail.data);
+                                    u.topicAssignments = parsed.topicAssignments;
+                                } else {
+                                    u.topicAssignments = [];
+                                }
+                            } catch (e) {
+                                u.topicAssignments = [];
+                            }
+                        }));
+                    }
+                    renderUserTable(allUsers);
+                } else {
+                    showMessage('加载失败: ' + (result.message || '未知错误'), 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        function formatTopicAssignments(assignments, userRole) {
+            if (!assignments || !assignments.length) return '-';
+            const topicRoleLabel = userRole === 'TOPIC_ADMIN' ? '审批员' : '成员';
+            return assignments.map(a => {
+                const name = a.topicName || ('主题' + a.topicId);
+                return `${name}(${topicRoleLabel})`;
+            }).join('、');
+        }
+
+        function getTopicRoleForSystemRole() {
+            if (isTopicApproverOnly()) {
+                return { value: 'MEMBER', label: '成员' };
+            }
+            const sysRole = document.getElementById('userRole').value;
+            if (sysRole === 'TOPIC_ADMIN') {
+                return { value: 'ADMIN', label: '主题审批员' };
+            }
+            return { value: 'MEMBER', label: '成员' };
+        }
+
+        // 渲染用户表格
+        function renderUserTable(users) {
+            const tbody = document.getElementById('userTableBody');
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 30px;">暂无数据</td></tr>';
+                return;
+            }
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${escapeHtml(user.username)}</td>
+                    <td>${escapeHtml(user.realName || '-')}</td>
+                    <td>${escapeHtml(user.email || '-')}</td>
+                    <td><span class="badge badge-${user.role.toLowerCase()}">${getRoleText(user.role)}</span></td>
+                    <td title="${escapeHtml(formatTopicAssignments(user.topicAssignments, user.role))}">${escapeHtml(formatTopicAssignments(user.topicAssignments, user.role))}</td>
+                    <td>${user.isActive ? '启用' : '禁用'}</td>
+                    <td>${new Date(user.createdTime).toLocaleString('zh-CN')}</td>
+                    <td>
+                        ${isFullAdminUser()
+                            ? `<button class="btn btn-edit" onclick="editUser(${user.id})">编辑</button>
+                        ${user.username !== 'root' ? `<button class="btn btn-danger" onclick="deleteUser(${user.id})">删除</button>` : ''}`
+                            : (isTopicApproverOnly() && user.role === 'USER'
+                                ? `<button class="btn btn-edit" onclick="editUser(${user.id})">分配主题</button>`
+                                : '-')}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            if (text == null) return '';
+            return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        async function loadTopicsForAssign() {
+            const url = isFullAdminUser() ? `${TOPIC_API}` : `${TOPIC_API}/manageable`;
+            const result = await fetchApiJson(url);
+            allTopicsForAssign = result.success ? (result.data || []) : [];
+            return allTopicsForAssign;
+        }
+
+        function renderTopicAssignTable(assignments) {
+            const tbody = document.getElementById('userTopicAssignBody');
+            const assignMap = {};
+            (assignments || []).forEach(a => { assignMap[a.topicId] = true; });
+            if (!allTopicsForAssign.length) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;">暂无主题，请先在主题管理中创建</td></tr>';
+                return;
+            }
+            const isSuper = document.getElementById('userRole').value === 'SUPER_ADMIN';
+            const { label: roleLabel } = getTopicRoleForSystemRole();
+            tbody.innerHTML = allTopicsForAssign.map(topic => {
+                const checked = assignMap[topic.id] != null;
+                return `
+                <tr>
+                    <td><input type="checkbox" class="topic-assign-check" data-topic-id="${topic.id}" ${checked ? 'checked' : ''} ${isSuper ? 'disabled' : ''}></td>
+                    <td>${escapeHtml(topic.topicName)}</td>
+                    <td><span class="topic-assign-role-label">${roleLabel}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function onUserRoleChange() {
+            const isSuper = document.getElementById('userRole').value === 'SUPER_ADMIN';
+            const section = document.getElementById('topicAssignSection');
+            section.style.display = isSuper ? 'none' : '';
+            const assignments = [];
+            document.querySelectorAll('.topic-assign-check:checked').forEach(cb => {
+                assignments.push({ topicId: parseInt(cb.dataset.topicId, 10) });
+            });
+            if (isSuper) {
+                document.querySelectorAll('.topic-assign-check').forEach(cb => { cb.checked = false; });
+            }
+            renderTopicAssignTable(assignments);
+        }
+
+        function collectTopicAssignments() {
+            const { value: role } = getTopicRoleForSystemRole();
+            const list = [];
+            document.querySelectorAll('.topic-assign-check:checked').forEach(cb => {
+                list.push({ topicId: parseInt(cb.dataset.topicId, 10), role });
+            });
+            return list;
+        }
+
+        function openCreateUserModal() {
+            resetUserForm();
+            document.getElementById('userFormTitle').textContent = '新增用户';
+            document.getElementById('password').required = true;
+            document.getElementById('passwordHint').textContent = '*';
+            loadTopicsForAssign().then(() => renderTopicAssignTable([]));
+            document.getElementById('userModal').classList.add('show');
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('show');
+            resetUserForm();
+        }
+
+        function setApproverAssignMode(enabled) {
+            const fields = ['username', 'password', 'realName', 'email', 'userRole', 'isActive'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.disabled = enabled;
+                if (id === 'password') {
+                    el.required = false;
+                }
+            });
+            const hint = document.getElementById('topicAssignHint');
+            if (hint) {
+                hint.textContent = enabled
+                    ? '您作为主题审批员，仅可在负责的主题下为普通用户勾选成员分配，不能修改主题本身，也不能授予审批权限。'
+                    : '主题内角色由系统角色决定：主题管理员在所选主题下为审批员，普通用户为成员。主题审批员仅可为普通用户分配成员身份，不能授予审批权限。';
+            }
+        }
+
+        // 编辑用户
+        async function editUser(id) {
+            try {
+                const result = await fetchApiJson(`${USER_API}/${id}`);
+                if (!result.success) {
+                    showMessage('加载失败: ' + (result.message || '未知错误'), 'error');
+                    return;
+                }
+                const { user, topicAssignments } = parseUserDetailResponse(result.data);
+                if (!user || user.id == null) {
+                    showMessage('加载失败: 用户数据格式异常', 'error');
+                    return;
+                }
+                const approverMode = isTopicApproverOnly();
+                document.getElementById('userId').value = user.id;
+                document.getElementById('username').value = user.username;
+                document.getElementById('password').value = '';
+                document.getElementById('password').required = false;
+                document.getElementById('passwordHint').textContent = '(留空不修改)';
+                document.getElementById('realName').value = user.realName || '';
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('userRole').value = user.role;
+                const roleSelect = document.getElementById('userRole');
+                const isRootUser = user.username === 'root';
+                roleSelect.disabled = isRootUser || approverMode;
+                roleSelect.title = isRootUser ? 'root 账号系统角色不可修改' : '';
+                document.getElementById('isActive').value = user.isActive.toString();
+                document.getElementById('userFormTitle').textContent = approverMode ? '分配主题' : '编辑用户';
+                setApproverAssignMode(approverMode);
+                await loadTopicsForAssign();
+                renderTopicAssignTable(topicAssignments);
+                onUserRoleChange();
+                document.getElementById('userModal').classList.add('show');
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 获取角色文本
+        function getRoleText(role) {
+            const roleMap = {
+                'SUPER_ADMIN': '超级管理员',
+                'TOPIC_ADMIN': '主题管理员',
+                'USER': '普通用户'
+            };
+            return roleMap[role] || role;
+        }
+
+        // 重置用户表单
+        function resetUserForm() {
+            document.getElementById('userForm').reset();
+            document.getElementById('userId').value = '';
+            document.getElementById('userFormTitle').textContent = '新增用户';
+            document.getElementById('topicAssignSection').style.display = '';
+            const roleSelect = document.getElementById('userRole');
+            roleSelect.disabled = false;
+            roleSelect.title = '';
+            setApproverAssignMode(false);
+        }
+
+        // 提交用户表单
+        document.getElementById('userForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('userId').value;
+            const approverMode = isTopicApproverOnly();
+            const role = document.getElementById('userRole').value;
+            const userData = approverMode && id
+                ? { topicAssignments: collectTopicAssignments() }
+                : {
+                username: document.getElementById('username').value.trim(),
+                password: document.getElementById('password').value,
+                realName: document.getElementById('realName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                role: role,
+                isActive: document.getElementById('isActive').value === 'true',
+                topicAssignments: role === 'SUPER_ADMIN' ? [] : collectTopicAssignments()
+            };
+            if (!approverMode && !id && !userData.password) {
+                showMessage('新增用户时密码不能为空', 'error');
+                return;
+            }
+            if (!approverMode && !userData.password) {
+                delete userData.password;
+            }
+            try {
+                const url = id ? `${USER_API}/${id}` : USER_API;
+                const method = id ? 'PUT' : 'POST';
+                const result = await fetchApiJson(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                if (result.success) {
+                    showMessage(id ? '更新成功' : '创建成功', 'success');
+                    closeUserModal();
+                    loadUsers();
+                } else {
+                    showMessage('操作失败: ' + (result.message || '未知错误'), 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        });
+
+        async function deleteUser(id) {
+            if (!confirm('确定要删除这个用户吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${USER_API}/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('删除成功', 'success');
+                    loadUsers();
+                } else {
+                    showMessage('删除失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // ========== 主题管理 ==========
+
+        async function loadTopics() {
+            try {
+                const url = isFullAdminUser()
+                    ? `${TOPIC_API}`
+                    : `${TOPIC_API}/manageable`;
+                const result = await fetchApiJson(url);
+                
+                if (result.success) {
+                    allTopics = result.data;
+                    renderTopicTable(allTopics);
+                } else {
+                    showMessage('加载失败: ' + (result.message || '未知错误'), 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 渲染主题表格
+        function renderTopicTable(topics) {
+            const tbody = document.getElementById('topicTableBody');
+            
+            if (!topics || topics.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px;">暂无数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = topics.map(topic => `
+                <tr>
+                    <td>${topic.id}</td>
+                    <td>${topic.topicName}</td>
+                    <td>${topic.description || '-'}</td>
+                    <td>${new Date(topic.createdTime).toLocaleString('zh-CN')}</td>
+                    <td>
+                        ${isFullAdminUser() ? `<button class="btn btn-edit" onclick="editTopic(${topic.id})">编辑</button>
+                        <button class="btn btn-danger" onclick="deleteTopic(${topic.id})">删除</button>` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 编辑主题
+        function editTopic(id) {
+            const topic = allTopics.find(t => t.id === id);
+            if (!topic) {
+                showMessage('主题不存在', 'error');
+                return;
+            }
+
+            document.getElementById('topicId').value = topic.id;
+            document.getElementById('topicName').value = topic.topicName;
+            document.getElementById('topicDescription').value = topic.description || '';
+            document.getElementById('topicFormTitle').textContent = '编辑主题';
+            document.getElementById('topicModal').classList.add('show');
+        }
+
+        function openCreateTopicModal() {
+            resetTopicForm();
+            document.getElementById('topicFormTitle').textContent = '新增主题';
+            document.getElementById('topicModal').classList.add('show');
+        }
+
+        function closeTopicModal() {
+            document.getElementById('topicModal').classList.remove('show');
+            resetTopicForm();
+        }
+
+        // 删除主题
+        async function deleteTopic(id) {
+            if (!confirm('确定要删除这个主题吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${TOPIC_API}/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('删除成功', 'success');
+                    loadTopics();
+                } else {
+                    showMessage('删除失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        }
+
+        // 重置主题表单
+        function resetTopicForm() {
+            document.getElementById('topicForm').reset();
+            document.getElementById('topicId').value = '';
+            document.getElementById('topicFormTitle').textContent = '新增主题';
+        }
+
+        // 提交主题表单
+        document.getElementById('topicForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('topicId').value;
+            const topicData = {
+                topicName: document.getElementById('topicName').value,
+                description: document.getElementById('topicDescription').value
+            };
+
+            try {
+                const url = id ? `${TOPIC_API}/${id}` : TOPIC_API;
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(topicData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(id ? '更新成功' : '创建成功', 'success');
+                    closeTopicModal();
+                    loadTopics();
+                } else {
+                    showMessage('操作失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误: ' + error.message, 'error');
+            }
+        });
+
+        window.addEventListener('load', async () => {
+            await checkLogin();
+            applyAdminPermissions();
+            if (canManageUsers()) {
+                loadUsers();
+            }
+            loadTopics();
+        });
+    </script>
+</body>
+</html>
