@@ -6,6 +6,28 @@
 
 ---
 
+## 功能预览
+
+### 指标列表
+
+指标管理首页：搜索、筛选、新增指标，以及待审批 / 我的申请入口。
+
+![指标列表](./docs/images/index-metrics.png)
+
+### 编辑指标
+
+配置指标基本信息、SQL 模版与参数定义；启用后自动生成 Open API 地址与 cURL 示例。
+
+![编辑指标](./docs/images/edit-metric.png)
+
+### 用户与主题分配
+
+系统管理：创建用户、设置系统角色，并为普通用户分配主题（主题内角色由系统角色自动推导）。
+
+![用户与主题分配](./docs/images/admin-user.png)
+
+---
+
 ## 1. 架构说明
 
 ### 1.1 总体架构
@@ -230,6 +252,7 @@ sqldm/
 │   ├── sql/
 │   │   └── sqldm_v1.0_full_init.sql   # ★ 数据库初始化脚本
 │   └── static/                  # 前端页面
+├── docs/images/                 # README 截图
 ├── scripts/
 │   ├── DbInit.java              # 库重置 + 执行 init SQL
 │   └── self-test.ps1            # API 自测
