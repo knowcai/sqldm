@@ -17,3 +17,10 @@ Thumbs.db
 # 配置（敏感信息）
 application-*.yml
 application-*.properties
+deploy/config.env
+deploy/logs/
+deploy/sqldm.pid
+deploy/sqldm.jar
+*.class
+cookies.txt
+META-INF/

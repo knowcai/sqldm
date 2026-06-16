@@ -1,26 +1,10 @@
 services:
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: sqldm
-      POSTGRES_USER: sqldm
-      POSTGRES_PASSWORD: sqldm
-    ports:
-      - "5433:5432"
-    volumes:
-      - sqldm_pg_data:/var/lib/postgresql/data
-
   app:
     build: .
     ports:
-      - "8080:8080"
+      - "${SERVER_PORT:-8080}:8080"
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/sqldm
-      DB_USER: sqldm
-      DB_PASSWORD: sqldm
-      SPRING_PROFILES_ACTIVE: prod
-    depends_on:
-      - postgres
-
-volumes:
-  sqldm_pg_data:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SERVER_PORT: 8080

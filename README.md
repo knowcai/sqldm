@@ -1,4 +1,4 @@
-# 指标管理系统（sqldm v1.0）
+# 指标管理系统（sqldm v1.0.1）
 
 业务分析指标的元数据管理平台：在前端配置指标定义（口径、SQL 模版、参数等），经审批后对外通过 Open API 供下游系统读取。
 
@@ -102,19 +102,20 @@
 
 ### 2.2 数据库配置
 
-编辑 `src/main/resources/application.yml`：
+数据库连接通过**环境变量**或 `deploy/config.env` 配置，无需修改源码中的 `application.yml`：
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://<主机>:5432/vectordb
-    username: root
-    password: root
-```
+| 变量 | 说明 | 示例 |
+|------|------|------|
+| `SPRING_DATASOURCE_URL` | JDBC 连接串 | `jdbc:postgresql://192.168.31.100:5432/vectordb` |
+| `SPRING_DATASOURCE_USERNAME` | 用户名 | `root` |
+| `SPRING_DATASOURCE_PASSWORD` | 密码 | `your_password` |
+| `SERVER_PORT` | 服务端口（可选） | `8080` |
 
-### 2.3 数据库初始化（必做）
+本地开发可直接设置环境变量，或使用 `deploy/config.env` + 启动脚本，详见 [deploy/DEPLOY.md](./deploy/DEPLOY.md)。
 
-应用**不会**自动建表，首次部署或重置库时须**手工**执行初始化脚本。
+### 2.3 数据库初始化（必做，手工执行）
+
+应用**不会**自动建表，首次部署或重置库时须由 DBA/运维**手工**执行初始化脚本。
 
 **脚本路径：**
 
@@ -122,26 +123,18 @@ spring:
 src/main/resources/sql/sqldm_v1.0_full_init.sql
 ```
 
-**方式 A — psql（推荐）**
+**psql 示例：**
 
 ```bash
-# 1. 若需清空重建（会删除 public 下所有对象）
-psql -h 192.168.31.100 -U root -d vectordb -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO public;"
-
-# 2. 执行初始化
-psql -h 192.168.31.100 -U root -d vectordb -f src/main/resources/sql/sqldm_v1.0_full_init.sql
+psql -h <数据库主机> -U <用户名> -d <库名> -f src/main/resources/sql/sqldm_v1.0_full_init.sql
 ```
 
-**方式 B — 项目内辅助脚本（Windows 示例）**
+如需清空重建（会删除 public 下所有对象）：
 
-```powershell
-cd d:\claudecode\java\sqldm
-$jar = "D:\Maven\repository\org\postgresql\postgresql\42.6.0\postgresql-42.6.0.jar"
-D:\jdk-21\jdk-21.0.6\bin\javac.exe -cp $jar scripts/DbInit.java
-D:\jdk-21\jdk-21.0.6\bin\java.exe -cp "$jar;scripts" DbInit
+```bash
+psql -h <主机> -U <用户> -d <库名> -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO public;"
+psql -h <主机> -U <用户> -d <库名> -f src/main/resources/sql/sqldm_v1.0_full_init.sql
 ```
-
-`scripts/DbInit.java` 会：清空 `public` schema → 执行 `sqldm_v1.0_full_init.sql` → 打印用户列表。
 
 **初始化后默认账号：**
 
@@ -151,15 +144,24 @@ D:\jdk-21\jdk-21.0.6\bin\java.exe -cp "$jar;scripts" DbInit
 
 ### 2.4 编译与启动
 
+**开发环境：**
+
 ```bash
 cd sqldm
 mvn clean package -DskipTests
 mvn spring-boot:run
 ```
 
-或直接运行主类 **`org.sqldm.Main`**。
+或直接运行主类 **`org.sqldm.Main`**（需在 IDE 或 shell 中设置 `SPRING_DATASOURCE_*` 环境变量）。
 
-启动成功后控制台输出访问地址 `http://localhost:8080`。
+**生产 / 一键部署（Linux / Windows）：**
+
+```bash
+cp deploy/config.env.example deploy/config.env   # 填写外部数据库连接
+./deploy/start.sh                                  # Windows: .\deploy\start.ps1
+```
+
+完整部署说明见 **[deploy/DEPLOY.md](./deploy/DEPLOY.md)**。
 
 ### 2.5 访问入口
 
@@ -253,8 +255,13 @@ sqldm/
 │   │   └── sqldm_v1.0_full_init.sql   # ★ 数据库初始化脚本
 │   └── static/                  # 前端页面
 ├── docs/images/                 # README 截图
+├── deploy/                      # 一键部署脚本与说明
+│   ├── DEPLOY.md                # ★ 部署文档（外部 DB + 手工 SQL）
+│   ├── config.env.example       # 数据库连接模板
+│   ├── start.sh / start.ps1
+│   └── stop.sh  / stop.ps1
 ├── scripts/
-│   ├── DbInit.java              # 库重置 + 执行 init SQL
+│   ├── DbInit.java              # 本地开发辅助（可选，非部署必需）
 │   └── self-test.ps1            # API 自测
 ├── README.md                    # 本文档（v1.0 使用说明）
 └── readme_historyversion.md     # 历史版本更新记录
